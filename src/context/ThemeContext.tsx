@@ -5,7 +5,6 @@ import { borderRadius, colors, spacing, Theme, typography } from '../constants/t
 interface ThemeContextType {
   theme: Theme;
   isDark: boolean;
-  toggleTheme: () => void;
 }
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
@@ -29,10 +28,8 @@ export const ThemeProvider: React.FC<IThemeProviderProps> = (props) => {
     borderRadius,
   };
 
-  const toggleTheme = () => setIsDark(!isDark);
-
   return (
-    <ThemeContext.Provider value={{ theme, isDark, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, isDark }}>
       <StatusBar style={isDark ? 'light' : 'dark'} />
       {children}
     </ThemeContext.Provider>
