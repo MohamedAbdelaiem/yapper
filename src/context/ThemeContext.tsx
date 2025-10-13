@@ -14,7 +14,7 @@ interface IThemeProviderProps {
 
 export const ThemeProvider: React.FC<IThemeProviderProps> = (props) => {
   const { children } = props;
-  const systemColorScheme = useColorScheme();
+  const systemColorScheme = useColorScheme() || 'dark';
   const [isDark, setIsDark] = useState(systemColorScheme === 'dark');
 
   useEffect(() => {
