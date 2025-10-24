@@ -14,7 +14,7 @@ jobs:
       - name: Trigger EAS Workflow
         id: trigger
         run: |
-          npx eas-cli@latest workflow:run create-production-builds.yml --json > result.json
+          npx eas-cli@latest workflow:run android-preview-build.yml --json > result.json
           cat result.json
         env:
           EAS_TOKEN: ${{ secrets.EAS_TOKEN }}
