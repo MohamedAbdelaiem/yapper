@@ -31,81 +31,30 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
 
-      - name: 📝 Get version from package.json
-        id: package_version
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Version: $VERSION"
-
       - name: 🚀 Build APK on EAS
         run: |
-          eas build --platform android --profile preview --non-interactive --wait --json > build-result.json
+          eas build --platform android --profile preview --non-interactive --no-wait --json > build-result.json
           cat build-result.json
 
       - name: 📱 Extract Build Info
-        id: build_info
         run: |
           BUILD_ID=$(jq -r '.[0].id' build-result.json)
-          APK_URL=$(jq -r '.[0].artifacts.buildUrl' build-result.json)
-          
-          echo "build_id=$BUILD_ID" >> $GITHUB_OUTPUT
-          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
-          
-          echo "✅ Build completed!"
-          echo "🔗 APK URL: $APK_URL"
-
-      - name: 📥 Download APK
-        run: |
-          curl -L -o app-preview.apk "${{ steps.build_info.outputs.apk_url }}"
-          ls -lh app-preview.apk
-
-      - name: 📅 Generate release info
-        id: release_info
-        run: |
-          TIMESTAMP=$(date +'%Y%m%d-%H%M%S')
-          SHORT_SHA=$(echo ${{ github.sha }} | cut -c1-7)
-          TAG_NAME="preview-${{ steps.package_version.outputs.version }}-${TIMESTAMP}-${SHORT_SHA}"
-          RELEASE_NAME="Preview Build v${{ steps.package_version.outputs.version }} (${SHORT_SHA})"
-          
-          echo "tag_name=$TAG_NAME" >> $GITHUB_OUTPUT
-          echo "release_name=$RELEASE_NAME" >> $GITHUB_OUTPUT
-
-      - name: 🚀 Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.release_info.outputs.tag_name }}
-          name: ${{ steps.release_info.outputs.release_name }}
-          body: |
-            ## 📱 Android Preview Build
-            
-            **Version:** ${{ steps.package_version.outputs.version }}
-            **Commit:** ${{ github.sha }}
-            **Branch:** ${{ github.ref_name }}
-            **Build ID:** `${{ steps.build_info.outputs.build_id }}`
-            **Built:** ${{ github.event.head_commit.timestamp }}
-            
-            ### 📥 Installation
-            1. Download `app-preview.apk` below
-            2. Enable "Install from unknown sources" on your Android device
-            3. Install the APK
-            
-            ### 📝 Changes
-            ${{ github.event.head_commit.message }}
-            
-            ---
-            *This is an internal preview build for testing purposes.*
-          files: app-preview.apk
-          draft: false
-          prerelease: true
-          token: ${{ secrets.GITHUB_TOKEN }}
+          echo "✅ Build submitted successfully!"
+          echo "🔗 Build ID: $BUILD_ID"
+          echo "📱 Track your build at: https://expo.dev/accounts/$(jq -r '.[0].accountName' build-result.json)/projects/$(jq -r '.[0].projectName' build-result.json)/builds/$BUILD_ID"
 
       - name: 💬 Build Summary
         run: |
-          echo "## 🎉 APK Released!" >> $GITHUB_STEP_SUMMARY
+          BUILD_ID=$(jq -r '.[0].id' build-result.json)
+          ACCOUNT=$(jq -r '.[0].accountName' build-result.json)
+          PROJECT=$(jq -r '.[0].projectName' build-result.json)
+
+          echo "## 🎉 Build Started!" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Release:** ${{ steps.release_info.outputs.release_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "**Tag:** \`${{ steps.release_info.outputs.tag_name }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "Your Android APK build has been submitted to EAS." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### 📥 Download:" >> $GITHUB_STEP_SUMMARY
-          echo "[View Release](https://github.com/${{ github.repository }}/releases/tag/${{ steps.release_info.outputs.tag_name }})" >> $GITHUB_STEP_SUMMARY
+          echo "**Build ID:** \`$BUILD_ID\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Track build:** [Open in Expo Dashboard](https://expo.dev/accounts/$ACCOUNT/projects/$PROJECT/builds/$BUILD_ID)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⏱️ Build typically takes 15-30 minutes. You'll receive a notification when it's ready." >> $GITHUB_STEP_SUMMARY
