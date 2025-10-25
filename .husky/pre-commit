@@ -1,12 +1,77 @@
-echo "Running lint-staged..."
+#!/usr/bin/env sh
+
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo "${BLUE}🔍 Running pre-commit checks...${NC}"
+echo ""
+
+# Run lint-staged (ESLint + Prettier on staged files)
+echo "${YELLOW}📝 Running lint-staged...${NC}"
 npx lint-staged
 
-echo "Running TypeScript type check..."
-npm run type-check
-
 if [ $? -ne 0 ]; then
-  echo "❌ Type check failed! Fix errors before committing."
+  echo ""
+  echo "${RED}❌ Lint-staged failed!${NC}"
+  echo ""
+  echo "${YELLOW}Common fixes:${NC}"
+  echo "  ${BLUE}•${NC} Run: npm run lint:fix"
+  echo "  ${BLUE}•${NC} Run: npm run format"
+  echo "  ${BLUE}•${NC} Fix remaining issues manually"
+  echo ""
+  echo "${BLUE}💡 To bypass (use sparingly):${NC}"
+  echo "  git commit --no-verify"
+  echo ""
   exit 1
 fi
 
-echo "✅ All checks passed!"
+echo ""
+echo "${GREEN}✅ Lint-staged passed!${NC}"
+echo ""
+
+# Optional: Run TypeScript type check on staged files only
+echo "${YELLOW}🔎 Running TypeScript check on staged files...${NC}"
+
+npm run type-check
+  
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "${RED}❌ TypeScript type check failed!${NC}"
+  echo ""
+  echo "${YELLOW}Fix type errors before committing${NC}"
+  echo ""
+  echo "${BLUE}💡 To bypass (use sparingly):${NC}"
+  echo "  git commit --no-verify"
+  echo ""
+  exit 1
+fi
+
+echo ""
+echo "${GREEN}✅ TypeScript check passed!${NC}"
+echo ""
+
+# Check for TODO comments (optional - just warning)
+echo "${YELLOW}🔍 Checking for TODO comments...${NC}"
+
+if [ -n "$STAGED_JS_FILES" ]; then
+  TODOS=$(echo "$STAGED_JS_FILES" | xargs grep -n "// TODO\|// FIXME\|// HACK" || true)
+  
+  if [ -n "$TODOS" ]; then
+    echo ""
+    echo "${YELLOW}ℹ️  Info: Found TODO/FIXME comments:${NC}"
+    echo "$TODOS"
+    echo ""
+    echo "${BLUE}💡 Consider creating issues for these items${NC}"
+    echo ""
+    # Not blocking - just informational
+  fi
+fi
+# Success!
+echo ""
+echo "${GREEN}✨ All pre-commit checks passed!${NC}"
+echo "${GREEN}✅ Ready to commit${NC}"
+echo ""

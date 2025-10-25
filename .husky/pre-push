@@ -1,10 +1,63 @@
-#!/bin/sh
+#!/usr/bin/env sh
 
-branch_name=$(git symbolic-ref --short HEAD)
+# Color codes
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
 
-echo "$branch_name" | grep -Eq '^(feat|fix|chore|hotfix|docs|ci)/[a-z0-9._-]+$'
-if [ $? -ne 0 ]; then
-  echo "❌ Invalid branch name: $branch_name"
-  echo "👉 Branch name must start with feat/, fix/, chore/, docs/, ci/, or hotfix/ (e.g. feat/signup-page)"
-  exit 1
+echo "${BLUE}🚀 Running pre-push checks...${NC}"
+echo ""
+
+# Get current branch
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+# Define valid branch name patterns
+valid_patterns="^(feature|feat|bugfix|fix|hotfix|release|chore|docs)/"
+
+# Check if branch follows naming convention
+if ! echo "$current_branch" | grep -Eq "$valid_patterns"; then
+  # Allow main, dev, and other permanent branches
+  if echo "$current_branch" | grep -Eq "^(main|dev|develop|production)$"; then
+    echo "${GREEN}✅ Pushing to permanent branch: $current_branch${NC}"
+    echo ""
+  else
+    echo "${RED}❌ Invalid branch name: '$current_branch'${NC}"
+    echo ""
+    echo "${YELLOW}Branch name does not follow naming conventions!${NC}"
+    echo ""
+    echo "${BLUE}📝 Valid branch naming patterns:${NC}"
+    echo "  ${GREEN}feature/${NC}<description>  - New features"
+    echo "  ${GREEN}feat/${NC}<description>     - New features (short)"
+    echo "  ${GREEN}bugfix/${NC}<description>   - Bug fixes"
+    echo "  ${GREEN}fix/${NC}<description>      - Bug fixes (short)"
+    echo "  ${GREEN}hotfix/${NC}<description>   - Emergency fixes"
+    echo "  ${GREEN}release/${NC}v<version>     - Release branches"
+    echo "  ${GREEN}chore/${NC}<description>    - Maintenance tasks"
+    echo "  ${GREEN}docs/${NC}<description>     - Documentation"
+    echo ""
+    echo "${GREEN}✅ Valid examples:${NC}"
+    echo "  feature/AUTH-123-user-login"
+    echo "  feat/add-dark-mode"
+    echo "  bugfix/fix-login-crash"
+    echo "  fix/payment-validation"
+    echo "  hotfix/v1.2.1-security-patch"
+    echo "  release/v1.2.0"
+    echo "  chore/update-dependencies"
+    echo "  docs/api-documentation"
+    echo ""
+    echo "${BLUE}💡 To rename your branch:${NC}"
+    echo "  git branch -m $current_branch <new-valid-name>"
+    echo ""
+    echo "${BLUE}💡 To bypass (not recommended):${NC}"
+    echo "  git push --no-verify"
+    echo ""
+    exit 1
+  fi
 fi
+
+echo "${GREEN}✅ Branch name is valid: $current_branch${NC}"
+echo ""
+echo "${GREEN}🚀 Pushing to remote...${NC}"
+echo ""
