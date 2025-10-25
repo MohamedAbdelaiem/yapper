@@ -1,5 +1,9 @@
 name: Build Android APK for Testers
 
+permissions:
+  contents: write
+
+
 on:
   workflow_dispatch: # Manual trigger - testers can click "Run workflow" button
   push:
@@ -30,7 +34,12 @@ jobs:
 
       - name: 📦 Install dependencies
         run: npm ci
-
+      
+      # TODO : Add ci steps (Lint -> Format -> unit-test -> etc)
+      #
+      #
+      #
+      
       - name: 🚀 Build APK on EAS
         run: |
           eas build --platform android --profile preview --non-interactive --no-wait --json > build-result.json
