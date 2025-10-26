@@ -1,14 +1,13 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, View } from 'react-native';
 
 const HomeScreen = () => {
   const { theme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
-
+  const styles = useMemo(() => createStyles(theme), [theme]);
   return (
     <View style={styles.container}>
       <Text style={styles.text}>{t('home.title')}</Text>
@@ -22,12 +21,13 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     container: {
       flex: 1,
-      justifyContent: 'center',
-      alignItems: 'center',
       backgroundColor: theme.colors.background.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     text: {
       color: theme.colors.text.primary,
-      marginTop: theme.spacing.md,
+      fontFamily: theme.typography.fonts.bold,
+      fontSize: 18,
     },
   });
