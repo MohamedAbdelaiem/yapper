@@ -6,9 +6,10 @@ import { useTheme } from '../../../../context/ThemeContext';
 
 interface ITopBarProps {
   onBackPress?: () => void;
+  showExitButton?: boolean;
 }
 
-const TopBar: React.FC<ITopBarProps> = ({ onBackPress }) => {
+const TopBar: React.FC<ITopBarProps> = ({ onBackPress, showExitButton = true }) => {
   const { theme } = useTheme();
   const { width } = useWindowDimensions();
 
@@ -19,17 +20,19 @@ const TopBar: React.FC<ITopBarProps> = ({ onBackPress }) => {
 
   return (
     <View style={styles.container}>
-      {/* Exit/Close button on the left */}
-      <TouchableOpacity
-        style={styles.exitButton}
-        onPress={onBackPress}
-        activeOpacity={0.7}
-        accessibilityLabel="TopBar_Exit_Button"
-      >
-        <X color={theme.colors.text.primary} size={24 * scaleFactor} />
-      </TouchableOpacity>
+      {/* Exit/Close button (conditionally rendered) */}
+      {showExitButton && (
+        <TouchableOpacity
+          style={styles.exitButton}
+          onPress={onBackPress}
+          activeOpacity={0.7}
+          accessibilityLabel="TopBar_Exit_Button"
+        >
+          <X color={theme.colors.text.primary} size={24 * scaleFactor} />
+        </TouchableOpacity>
+      )}
 
-      {/* Centered X Logo */}
+      {/* Centered Logo */}
       <View style={styles.logoContainer}>
         <Image source={require('../../../../..//assets/images/yapper.png')} style={styles.logo} resizeMode="contain" />
       </View>

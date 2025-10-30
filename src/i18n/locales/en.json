@@ -91,6 +91,11 @@
         "googleLogo": "Google logo",
         "githubLogo": "GitHub logo"
       }
+    },
+    "birthDate": {
+      "title": "What's your birth date?",
+      "description": "This won't be public",
+      "label": "Birth Date"
     }
   },
   "userList": {
