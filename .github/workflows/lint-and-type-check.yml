@@ -11,6 +11,8 @@ jobs:
   lint:
     name: Code Quality Checks
     runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_USER_STORAGE_KEY: ${{ secrets.EXPO_PUBLIC_USER_STORAGE_KEY }}
 
     steps:
       - name: 🏗 Checkout
