@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Text, TextProps, TextStyle } from 'react-native';
 import { Theme } from '../constants/theme';
 import { useTheme } from '../context/ThemeContext';
+import React from 'react';
 
 type Variant = 'display' | 'h1' | 'h2' | 'h3' | 'subtitle' | 'body' | 'bodyMedium' | 'caption' | 'tiny' | 'label';
 

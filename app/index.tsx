@@ -9,7 +9,7 @@ export default function App() {
 
   useEffect(() => {
     if (token === null) {
-      router.replace('/(auth)/landing_screen');
+      router.replace('/(auth)/landing-screen');
     } else {
       router.replace('/(protected)');
     }
