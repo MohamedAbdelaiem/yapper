@@ -92,7 +92,7 @@ const createStyles = (theme: Theme) =>
       paddingHorizontal: theme.spacing.xl,
       paddingVertical: theme.spacing.sm,
       borderRadius: theme.borderRadius.xxl,
-      borderWidth: 1,
+      borderWidth: theme.borderWidth.thin,
     },
     primaryButton: {
       backgroundColor: theme.colors.background.inverse,

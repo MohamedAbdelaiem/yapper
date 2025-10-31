@@ -137,7 +137,7 @@ const createStyles = (theme: Theme) =>
       height: 56,
       backgroundColor: theme.colors.background.primary,
       borderColor: theme.colors.border,
-      borderWidth: 1,
+      borderWidth: theme.borderWidth.thin,
       borderRadius: theme.borderRadius.sm,
       paddingHorizontal: theme.spacing.lg,
       paddingVertical: theme.spacing.lg,
@@ -148,7 +148,7 @@ const createStyles = (theme: Theme) =>
     },
     inputFocused: {
       borderColor: theme.colors.text.link,
-      borderWidth: 2,
+      borderWidth: theme.borderWidth.medium,
     },
     dateInput: {
       justifyContent: 'center',
