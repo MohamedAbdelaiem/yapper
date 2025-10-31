@@ -15,7 +15,7 @@ const OAuthHeadLine: React.FC<IOAuthHeadLineProps> = ({ theme }) => {
     <>
       <View style={styles.logoWrap}>
         <Image
-          source={require('../../../../../assets/images/yapper.png')}
+          source={require('@/assets/images/yapper.png')}
           style={styles.logo}
           accessibilityLabel={t('auth.oauth.accessibility.logo')}
         />

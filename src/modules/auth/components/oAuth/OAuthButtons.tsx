@@ -19,7 +19,7 @@ const OAuthButtons: React.FC<IOAuthButtonProps> = ({ theme, onGooglePress, onGit
       <Pressable onPress={onGooglePress} style={({ pressed }) => [styles.pillButton, pressed && styles.pressed]}>
         <View style={styles.buttonContent}>
           <Image
-            source={require('../../../../../assets/images/google.png')}
+            source={require('@/assets/images/google.png')}
             style={styles.buttonLogo}
             accessibilityLabel={t('auth.oauth.accessibility.googleLogo')}
           />
@@ -31,7 +31,7 @@ const OAuthButtons: React.FC<IOAuthButtonProps> = ({ theme, onGooglePress, onGit
       <Pressable onPress={onGithubPress} style={({ pressed }) => [styles.pillButton, pressed && styles.pressed]}>
         <View style={styles.buttonContent}>
           <Image
-            source={require('../../../../../assets/images/Github-Logo.png')}
+            source={require('@/assets/images/Github-Logo.png')}
             style={styles.buttonLogo}
             accessibilityLabel={t('auth.oauth.accessibility.githubLogo')}
           />
