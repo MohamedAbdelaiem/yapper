@@ -7,8 +7,15 @@ const api = axios.create({
   },
 });
 
+// api.interceptors.response.use((response) => {
+//   response.data = humps.camelizeKeys(response.data);
+//   return response;
+// });
+
 api.interceptors.request.use(
   async (config) => {
+    // config.data = humps.decamelizeKeys(config.data);
+    // config.params = humps.decamelizeKeys(config.params);
     const token = await getToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
