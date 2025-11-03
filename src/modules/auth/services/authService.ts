@@ -1,3 +1,4 @@
+import { extractErrorMessage } from '@/src/utils/errorExtraction';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 import * as AuthSession from 'expo-auth-session';
@@ -13,7 +14,6 @@ import {
   mapLoginResponseDTOToLoginResponse,
   mapOAuthResponseDTOToOAuthResponse,
 } from '../types';
-import { extractErrorMessage } from '@/src/utils/errorExtraction';
 
 // Complete auth session when app resumes
 WebBrowser.maybeCompleteAuthSession();
@@ -34,7 +34,7 @@ export const login = async (credentials: ILoginCredentials): Promise<ILoginRespo
   try {
     const res = await api.post('/auth/login', credentials);
     await setAuthProvider('local');
-    return res.data;
+    return mapLoginResponseDTOToLoginResponse(res.data);
   } catch (error) {
     throw new Error(extractErrorMessage(error));
   }
