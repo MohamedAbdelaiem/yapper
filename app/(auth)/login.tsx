@@ -1,4 +1,5 @@
 import * as Localization from 'expo-localization';
+import { router } from 'expo-router';
 import { CountryCode, parsePhoneNumberFromString } from 'libphonenumber-js/max';
 import { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -18,16 +19,16 @@ import {
 import { checkExists, login } from '@/src/modules/auth/services/authService';
 
 // Components
-import BottomBar from '@/src/modules/auth/components/shared/BottomBar';
 import EmailForm from '@/src/modules/auth/components/EmailForm';
 import PasswordForm from '@/src/modules/auth/components/PasswordForm';
+import BottomBar from '@/src/modules/auth/components/shared/BottomBar';
 import TopBar from '@/src/modules/auth/components/shared/TopBar';
 
 // Utils
+import ActivityLoader from '@/src/components/ActivityLoader';
 import { ILoginResponse } from '@/src/modules/auth/types';
-import { useAuthStore } from '@/src/store/useAuthStore';
 import { ButtonOptions } from '@/src/modules/auth/utils/enums';
-import React from 'react';
+import { useAuthStore } from '@/src/store/useAuthStore';
 
 // Types
 type InputType = 'email' | 'phone' | 'username' | null;
@@ -43,6 +44,7 @@ const LoginScreen = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [nextState, setNextState] = useState(false);
   const [inputType, setInputType] = useState<InputType>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   // ============================================
   // Hooks & Constants
@@ -105,11 +107,11 @@ const LoginScreen = () => {
   };
 
   const handleBack = () => {
-    Alert.alert(t('auth.login.alerts.backButtonPressed'));
+    router.replace('/(auth)/landing-screen');
   };
 
   const handleForgotPassword = () => {
-    Alert.alert(t('auth.login.alerts.forgotPasswordPressed'));
+    router.replace('/(auth)/forgot-password/find-account');
   };
 
   // ============================================
@@ -124,6 +126,8 @@ const LoginScreen = () => {
       });
       return false;
     }
+    setIsLoading(true);
+    setNextState(false);
 
     try {
       const exists = await checkExists(text);
@@ -141,6 +145,9 @@ const LoginScreen = () => {
         text2: errorMessage,
       });
       return false;
+    } finally {
+      setIsLoading(false);
+      setNextState(true);
     }
   };
 
@@ -181,6 +188,9 @@ const LoginScreen = () => {
       return;
     }
 
+    setIsLoading(true);
+    setNextState(false);
+
     // Attempt login
     try {
       const data: ILoginResponse = await login(loginData);
@@ -200,6 +210,9 @@ const LoginScreen = () => {
         text1: t('auth.login.errors.loginFailed'),
         text2: errorMessage,
       });
+    } finally {
+      setIsLoading(false);
+      setNextState(true);
     }
   };
 
@@ -208,7 +221,6 @@ const LoginScreen = () => {
   // ============================================
   const handleNext = async () => {
     Keyboard.dismiss();
-
     if (currentStep === 1) {
       const isValid = await handleStepOne();
       if (isValid) {
@@ -225,6 +237,7 @@ const LoginScreen = () => {
   // ============================================
   return (
     <>
+      <ActivityLoader visible={isLoading} message="Loading..." />
       <TopBar onBackPress={handleBack} />
 
       {currentStep === 1 ? (
@@ -249,7 +262,7 @@ const LoginScreen = () => {
         }}
         leftButton={{
           label: ButtonOptions.FORGOT_PASSWORD,
-          onPress: currentStep === 1 ? handleBack : handleForgotPassword,
+          onPress: handleForgotPassword,
           enabled: true,
           visible: true,
           type: 'secondary',

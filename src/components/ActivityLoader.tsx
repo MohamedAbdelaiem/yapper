@@ -1,6 +1,6 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
-import React, { useMemo } from 'react';
+import { useMemo } from 'react';
 import { ActivityIndicator, Modal, StyleSheet, Text, View } from 'react-native';
 
 interface IActivityLoaderProps {

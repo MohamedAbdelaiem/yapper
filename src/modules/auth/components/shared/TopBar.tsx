@@ -1,26 +1,27 @@
+import type { Theme } from '@/src/constants/theme';
+import { useTheme } from '@/src/context/ThemeContext';
 import { X } from 'lucide-react-native';
 import React, { useMemo } from 'react';
 import { Image, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
-import type { Theme } from '../../../../constants/theme';
-import { useTheme } from '../../../../context/ThemeContext';
 
 interface ITopBarProps {
   onBackPress?: () => void;
   showExitButton?: boolean;
 }
 
-const TopBar: React.FC<ITopBarProps> = ({ onBackPress, showExitButton = true }) => {
-  const { theme } = useTheme();
-  const { width } = useWindowDimensions();
+const TopBar: React.FC<ITopBarProps> = ({ onBackPress, showExitButton }) => {
+  const { theme, isDark } = useTheme();
+  const { width, height } = useWindowDimensions();
 
-  // Responsive scaling — adjusts smoothly based on screen width
-  const scaleFactor = Math.min(Math.max(width / 390, 0.85), 1.1);
+  const scaleWidth = Math.min(Math.max(width / 390, 0.85), 1.1);
+  const scaleHeight = Math.min(Math.max(height / 844, 0.85), 1.1);
+  const scaleFonts = Math.min(scaleWidth, scaleHeight);
 
-  const styles = useMemo(() => createStyles(theme, scaleFactor), [theme, scaleFactor]);
+  const styles = useMemo(() => createStyles(theme, scaleWidth, scaleHeight), [theme, scaleWidth, scaleHeight]);
 
   return (
     <View style={styles.container}>
-      {/* Exit/Close button (conditionally rendered) */}
+      {/* Exit/Close button on the left */}
       {showExitButton && (
         <TouchableOpacity
           style={styles.exitButton}
@@ -28,24 +29,28 @@ const TopBar: React.FC<ITopBarProps> = ({ onBackPress, showExitButton = true }) 
           activeOpacity={0.7}
           accessibilityLabel="TopBar_Exit_Button"
         >
-          <X color={theme.colors.text.primary} size={24 * scaleFactor} />
+          <X color={theme.colors.text.primary} size={24 * scaleFonts} />
         </TouchableOpacity>
       )}
 
-      {/* Centered Logo */}
+      {/* Centered X Logo */}
       <View style={styles.logoContainer}>
-        <Image source={require('../../../../../assets/images/yapper.png')} style={styles.logo} resizeMode="contain" />
+        <Image
+          source={isDark ? require('@/assets/images/Yapper-Black.png') : require('@/assets/images/Yapper-White.png')}
+          style={styles.logo}
+          resizeMode="contain"
+        />
       </View>
     </View>
   );
 };
 
-const createStyles = (theme: Theme, scaleFactor: number) =>
+const createStyles = (theme: Theme, scaleWidth: number = 1, scaleHeight: number = 1) =>
   StyleSheet.create({
     container: {
       width: '100%',
-      height: 48 * scaleFactor,
-      paddingHorizontal: theme.spacing.md * scaleFactor,
+      height: 48 * scaleHeight,
+      paddingHorizontal: theme.spacing.md * scaleWidth,
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: theme.colors.background.primary,
@@ -53,7 +58,8 @@ const createStyles = (theme: Theme, scaleFactor: number) =>
     exitButton: {
       justifyContent: 'center',
       alignItems: 'center',
-      padding: theme.spacing.sm * scaleFactor,
+      paddingHorizontal: theme.spacing.sm * scaleWidth,
+      paddingVertical: theme.spacing.sm * scaleHeight,
     },
     logoContainer: {
       position: 'absolute',
@@ -63,8 +69,8 @@ const createStyles = (theme: Theme, scaleFactor: number) =>
       justifyContent: 'center',
     },
     logo: {
-      width: 90 * scaleFactor,
-      height: 90 * scaleFactor,
+      width: 25 * scaleWidth,
+      height: 25 * scaleHeight,
     },
   });
 

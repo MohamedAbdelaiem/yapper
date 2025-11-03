@@ -41,14 +41,24 @@ export const useUserList = (options: UseUserListOptions): IUseUserListResult => 
       try {
         const data = await getUserList({ ...options, page: pageNumber });
 
-        setUsers((prev) => (isRefresh ? data.users : [...prev, ...data.users]));
+        setUsers((prev) => {
+          if (isRefresh) {
+            return data.users;
+          }
+
+          // Deduplicate: only add users that don't already exist
+          const existingIds = new Set(prev.map((u) => u.id));
+          const newUsers = data.users.filter((u) => !existingIds.has(u.id));
+
+          return [...prev, ...newUsers];
+        });
         currentPageRef.current = pageNumber;
         setHasNextPage(Boolean(data.nextPage));
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } catch (err: any) {
-        const message = err?.response?.data?.message || err?.message || 'Failed to load users';
+      } catch (err: unknown) {
+        const error = err as { response?: { data?: { message?: string } }; message?: string };
+        const message = error?.response?.data?.message || error?.message || 'Failed to load users';
         setError(message);
-
+        setHasNextPage(false);
         if (isRefresh) {
           setUsers([]);
           currentPageRef.current = 1;

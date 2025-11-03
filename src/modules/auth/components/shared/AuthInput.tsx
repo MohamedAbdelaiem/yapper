@@ -160,5 +160,6 @@ const createStyles = (theme: Theme) =>
     dateTextPlaceholder: {
       color: theme.colors.text.secondary,
       fontSize: theme.typography.sizes.md,
+      fontFamily: theme.typography.fonts.regular,
     },
   });

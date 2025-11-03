@@ -63,6 +63,7 @@ const EmailForm: React.FC<IEmailFormProps> = ({ text, onTextChange }) => {
           autoCapitalize="none"
           autoCorrect={false}
           keyboardAppearance="dark"
+          accessibilityLabel="user-identifier-input"
         />
       </View>
     </View>
@@ -74,15 +75,15 @@ const createStyles = (theme: Theme) =>
     container: {
       flex: 1,
       backgroundColor: theme.colors.background.primary,
-      paddingHorizontal: 15,
-      paddingTop: 32,
+      paddingHorizontal: theme.spacing.mdg,
+      paddingTop: theme.spacing.xxl,
     },
     title: {
       color: theme.colors.text.primary,
-      fontSize: 28,
-      fontWeight: '700',
+      fontSize: theme.typography.sizes.xml,
+      fontFamily: theme.typography.fonts.bold,
       lineHeight: 36,
-      marginBottom: 32,
+      marginBottom: theme.spacing.xl,
       letterSpacing: -0.3,
     },
     inputContainer: {
@@ -92,13 +93,13 @@ const createStyles = (theme: Theme) =>
     input: {
       height: 56,
       backgroundColor: theme.colors.background.primary,
-      borderColor: theme.colors.border,
+      borderColor: theme.colors.borderInverse,
       borderWidth: 1,
-      borderRadius: 4,
-      paddingHorizontal: 16,
-      paddingVertical: 16,
+      borderRadius: theme.borderRadius.sm,
+      paddingHorizontal: theme.spacing.lg,
+      paddingVertical: theme.spacing.lg,
       color: theme.colors.text.primary,
-      fontSize: 17,
+      fontSize: theme.typography.sizes.md,
       width: '100%',
     },
     inputFocused: {
