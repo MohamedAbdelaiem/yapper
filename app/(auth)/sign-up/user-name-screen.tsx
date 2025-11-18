@@ -1,50 +1,48 @@
-import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View, Animated, TextInput } from 'react-native';
-import { useTheme } from '../../../src/context/ThemeContext';
-import { Theme } from '../../../src/constants/theme';
-import { useTranslation } from 'react-i18next';
-import TopBar from '@/src/modules/auth/components/shared/TopBar';
-import BottomBar from '@/src/modules/auth/components/shared/BottomBar';
-import { Check } from 'lucide-react-native';
-import { useLocalSearchParams } from 'expo-router';
-import { updateUserName } from '@/src/services/userService';
-import Toast from 'react-native-toast-message';
 import ActivityLoader from '@/src/components/ActivityLoader';
-import { useAuthStore } from '@/src/store/useAuthStore';
+import { Theme } from '@/src/constants/theme';
+import { useTheme } from '@/src/context/ThemeContext';
+import BottomBar from '@/src/modules/auth/components/shared/BottomBar';
+import TopBar from '@/src/modules/auth/components/shared/TopBar';
 import { usernameSchema } from '@/src/modules/auth/schemas/schemas';
+import { useSignUpStore } from '@/src/modules/auth/store/useSignUpStore';
+import { updateUserName } from '@/src/services/userService';
+import { useAuthStore } from '@/src/store/useAuthStore';
+import { router } from 'expo-router';
+import { Check } from 'lucide-react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Animated, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import Toast from 'react-native-toast-message';
 
 const UserNameScreen: React.FC = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const { sessionToken: _sessionToken, userNames: userNamesParam } = useLocalSearchParams();
 
-  // Parse userNames from params
-  const availableUsernames = useMemo(() => {
-    if (Array.isArray(userNamesParam)) return userNamesParam;
-    if (typeof userNamesParam === 'string') {
-      try {
-        return JSON.parse(userNamesParam);
-      } catch {
-        return [userNamesParam];
-      }
-    }
-    return [];
-  }, [userNamesParam]);
+  // Zustand store
+  const email = useSignUpStore((state) => state.email);
+  const userNames = useSignUpStore((state) => state.userNames);
 
-  const [username, setUsername] = useState(availableUsernames[0] || '');
+  const [username, setUsername] = useState(userNames[0] || '');
   const [isFocused, setIsFocused] = useState(false);
   const [showMore, setShowMore] = useState(false);
-  const [, setSelectedUsername] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [isNextEnabled, setNextEnabled] = useState(false);
+  const [isNextEnabled, setNextEnabled] = useState(true);
   const labelPosition = useState(new Animated.Value(1))[0];
 
   const styles = useMemo(() => createStyles(theme), [theme]);
+
   const setSkipRedirect = useAuthStore((state) => state.setSkipRedirect);
+
+  // Redirect if no email or usernames (user shouldn't be here)
+  useEffect(() => {
+    if (!email || !userNames || userNames.length === 0) {
+      router.replace('/(auth)/sign-up/create-account-screen');
+    }
+  }, [email, userNames]);
 
   const shouldFloat = isFocused || username.length > 0;
 
-  React.useEffect(() => {
+  useEffect(() => {
     Animated.timing(labelPosition, {
       toValue: shouldFloat ? 1 : 0,
       duration: 200,
@@ -77,7 +75,6 @@ const UserNameScreen: React.FC = () => {
   };
 
   const handleSelectUsername = (selectedUsername: string) => {
-    setSelectedUsername(selectedUsername);
     setUsername(selectedUsername.replace('@', ''));
   };
 
@@ -85,22 +82,23 @@ const UserNameScreen: React.FC = () => {
     if (!username) {
       Toast.show({
         type: 'error',
-        text1: t('auth.username.error'),
-        text2: 'Please select a username',
+        text1: t('auth.signUp.userName.errors.usernameRequired'),
+        text2: t('auth.signUp.userName.errors.selectOrEnter'),
       });
       return;
     }
     if (!usernameSchema.safeParse(username).success) {
       Toast.show({
         type: 'error',
-        text1: t('auth.username.errorToast'),
-        text2: t('auth.username.invalidFormatToast'),
+        text1: t('auth.signUp.userName.errors.invalidUsername'),
+        text2: t('auth.signUp.userName.errors.usernameFormat'),
       });
       return;
     }
-
+    const userNamesParam = useSignUpStore.getState().userNames;
     if (username === userNamesParam[0]) {
       setSkipRedirect(false);
+      router.replace('/(protected)');
       return;
     }
 
@@ -108,11 +106,18 @@ const UserNameScreen: React.FC = () => {
     setNextEnabled(false);
     try {
       await updateUserName(username);
+
+      Toast.show({
+        type: 'success',
+        text1: t('auth.signUp.userName.success.usernameSet'),
+        text2: t('auth.signUp.userName.success.yourUsername', { username }),
+      });
       setSkipRedirect(false);
+      router.replace('/(protected)');
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: t('auth.username.errorToast'),
+        text1: t('auth.signUp.userName.errors.error'),
         text2: (error as Error).message,
       });
     } finally {
@@ -121,10 +126,8 @@ const UserNameScreen: React.FC = () => {
     }
   };
 
-  const handleSkip = async () => {
-    setLoading(true);
-    setSkipRedirect(false);
-    setLoading(false);
+  const handleSkip = () => {
+    router.push('/(protected)');
   };
 
   return (
@@ -133,12 +136,12 @@ const UserNameScreen: React.FC = () => {
       <TopBar showExitButton={false} />
       <View style={styles.scrollableContent}>
         <View style={styles.header}>
-          <Text style={styles.title}>{t('auth.username.title')}</Text>
-          <Text style={styles.subtitle}>{t('auth.username.subtitle')}</Text>
+          <Text style={styles.title}>{t('auth.signUp.userName.title')}</Text>
+          <Text style={styles.subtitle}>{t('auth.signUp.userName.subtitle')}</Text>
         </View>
 
         <View style={styles.inputWrapper}>
-          <Animated.Text style={labelStyle}>{t('auth.username.label')}</Animated.Text>
+          <Animated.Text style={labelStyle}>{t('auth.signUp.userName.usernameLabel')}</Animated.Text>
           <View style={styles.inputContainer}>
             <TextInput
               style={[
@@ -155,48 +158,52 @@ const UserNameScreen: React.FC = () => {
               keyboardAppearance="dark"
               accessibilityLabel="username-input"
             />
-            {username.length >= 3 && (
+            {username.length >= 3 && usernameSchema.safeParse(username).success && (
               <View style={styles.checkmark}>
                 <Check size={16} color="#FFFFFF" strokeWidth={3} />
               </View>
             )}
           </View>
           {username.length > 0 && username.length < 3 && (
-            <Text style={styles.errorText}>{t('auth.username.minLengthError')}</Text>
+            <Text style={styles.errorText}>{t('auth.signUp.userName.errors.minLength')}</Text>
           )}
         </View>
 
         <View style={showMore ? styles.expandedSuggestionsContainer : styles.suggestionsWrapper}>
-          {availableUsernames
-            .slice(0, showMore ? availableUsernames.length : 2)
-            .map((item: string, index: number, array: string[]) => (
-              <View key={`${item}-${index}`} style={styles.suggestionItem}>
-                <TouchableOpacity onPress={() => handleSelectUsername(item)} accessibilityLabel={`suggestion-${item}`}>
-                  <Text style={[styles.suggestionText]}>{item}</Text>
-                </TouchableOpacity>
+          {userNames.slice(0, showMore ? userNames.length : 2).map((item: string, index: number, array: string[]) => (
+            <View key={`${item}-${index}`} style={styles.suggestionItem}>
+              <TouchableOpacity onPress={() => handleSelectUsername(item)} accessibilityLabel={`suggestion-${item}`}>
+                <Text style={[styles.suggestionText]}>{item}</Text>
+              </TouchableOpacity>
 
-                {index < array.length - 1 && <Text style={styles.commaText}>, </Text>}
-              </View>
-            ))}
+              {index < array.length - 1 && <Text style={styles.commaText}>, </Text>}
+            </View>
+          ))}
         </View>
 
-        <TouchableOpacity style={styles.showMoreButton} onPress={handleShowMore} accessibilityLabel="show-more-button">
-          <Text style={styles.showMoreText}>
-            {showMore ? t('auth.username.showLess') : t('auth.username.showMore')}
-          </Text>
-        </TouchableOpacity>
+        {userNames.length > 2 && (
+          <TouchableOpacity
+            style={styles.showMoreButton}
+            onPress={handleShowMore}
+            accessibilityLabel="show-more-button"
+          >
+            <Text style={styles.showMoreText}>
+              {showMore ? t('auth.signUp.userName.showLess') : t('auth.signUp.userName.showMore')}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <BottomBar
         rightButton={{
-          label: t('auth.username.next'),
+          label: t('buttons.next'),
           onPress: handleNext,
-          enabled: isNextEnabled,
+          enabled: isNextEnabled && username.length >= 3 && usernameSchema.safeParse(username).success,
           visible: true,
           type: 'primary',
         }}
         leftButton={{
-          label: t('auth.username.skipForNow'),
+          label: t('auth.signUp.userName.skipButton'),
           onPress: handleSkip,
           enabled: true,
           visible: true,
@@ -244,7 +251,7 @@ const createStyles = (theme: Theme) =>
       width: '100%',
     },
     input: {
-      height: 56,
+      height: theme.spacing.lg + theme.spacing.xxxl,
       backgroundColor: theme.colors.background.primary,
       borderColor: theme.colors.border,
       borderWidth: theme.borderWidth.thin,
@@ -276,8 +283,8 @@ const createStyles = (theme: Theme) =>
       right: theme.spacing.lg,
       top: '55%',
       marginTop: theme.spacing.md * -1,
-      width: 18,
-      height: 18,
+      width: theme.spacing.lg + 2,
+      height: theme.spacing.lg + 2,
       borderRadius: theme.borderRadius.lg,
       backgroundColor: theme.colors.success,
       justifyContent: 'center',
