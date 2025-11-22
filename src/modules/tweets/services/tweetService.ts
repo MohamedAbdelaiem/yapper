@@ -1,5 +1,5 @@
 import api from '@/src/services/apiClient';
-import { ISingleTweetResponse, ITweet, ITweetFilters, ITweets, ITweetsResponse } from '../types';
+import { IQuotesResponse, ISingleTweetResponse, ITweet, ITweetFilters, ITweets, ITweetsResponse } from '../types';
 
 /**
  * Upload a single image file
@@ -214,5 +214,15 @@ export const quoteTweet = async (tweetId: string, content: string, mediaUris?: s
   }
 
   const response = await api.post<ISingleTweetResponse>(`/tweets/${tweetId}/quote`, payload);
+  return response.data.data;
+};
+
+export const getTweetQuotes = async (
+  tweetId: string,
+  filters: { cursor?: string; limit?: number } = {},
+): Promise<IQuotesResponse> => {
+  const response = await api.get<{ data: IQuotesResponse }>(`/tweets/${tweetId}/quotes`, {
+    params: filters,
+  });
   return response.data.data;
 };
