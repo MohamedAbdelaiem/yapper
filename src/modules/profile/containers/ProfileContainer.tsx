@@ -3,6 +3,7 @@ import { MediaViewerProvider } from '@/src/context/MediaViewerContext';
 import MediaViewerModal from '@/src/modules/tweets/components/MediaViewerModal';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, LogBox, RefreshControl, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useTheme } from '../../../context/ThemeContext';
 import { useAuthStore } from '../../../store/useAuthStore';
 import AnimatedProfileHeader from '../components/AnimatedProfileHeader';
@@ -147,13 +148,13 @@ function ProfileContainerInner({ userId, isOwnProfile = true }: ProfileContainer
         scrollY={scrollY}
         headerHeight={ANIMATED_HEADER_HEIGHT}
       />
-      <Animated.ScrollView
+      <ScrollView
         scrollEventThrottle={16}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: false,
         })}
         showsVerticalScrollIndicator={false}
-        style={containerStyles.scrollView}
+        style={{}}
         contentContainerStyle={containerStyles.scrollContent}
         refreshControl={
           <RefreshControl
@@ -174,10 +175,10 @@ function ProfileContainerInner({ userId, isOwnProfile = true }: ProfileContainer
         >
           <ProfileHeader key={refreshKey} userId={userId} isOwnProfile={isOwnProfile} />
         </Animated.View>
-        <View style={containerStyles.tabsContainer}>
-          <ProfileTabs userId={userId} />
-        </View>
-      </Animated.ScrollView>
+      </ScrollView>
+      <View style={containerStyles.tabsContainer}>
+        <ProfileTabs userId={userId} />
+      </View>
     </View>
   );
 }
