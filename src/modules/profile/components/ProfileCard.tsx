@@ -1,3 +1,4 @@
+import { DEFAULT_BANNER_URL } from '@/src/constants/defaults';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -11,7 +12,7 @@ export type ProfileCardData = {
   avatar: string;
   banner?: string;
   bio?: string;
-  followedBy: string[]; // Array of follower names
+  followedBy: string[];
 };
 
 type ProfileCardProps = {
@@ -119,7 +120,7 @@ export default function ProfileCard({ profile, onFollow, isFollowing = false }: 
       color: theme.colors.text.inverse,
       lineHeight: 16,
     },
-    // eslint-disable-next-line react-native/no-color-literals
+
     followingButton: {
       backgroundColor: 'transparent',
       borderWidth: theme.borderWidth.thin,
@@ -142,20 +143,29 @@ export default function ProfileCard({ profile, onFollow, isFollowing = false }: 
   };
 
   return (
-    <View style={styles.card}>
+    <View style={styles.card} testID={`profile_card_${profile.id}`}>
       {/* Banner Image */}
-      <Image source={{ uri: profile.banner || 'https://picsum.photos/600/180' }} style={styles.banner} />
+      <Image
+        source={{ uri: profile.banner || DEFAULT_BANNER_URL }}
+        style={styles.banner}
+        testID={`profile_card_banner_${profile.id}`}
+      />
 
       <View style={styles.contentContainer}>
         {/* Avatar with overlap */}
         <View style={styles.avatarContainer}>
-          <Image source={{ uri: profile.avatar }} style={styles.avatar} />
+          <Image source={{ uri: profile.avatar }} style={styles.avatar} testID={`profile_card_avatar_${profile.id}`} />
         </View>
 
         {/* Name and Follow Button Row */}
         <View style={styles.nameRow}>
           <View style={styles.nameContainer}>
-            <Text style={styles.name} numberOfLines={1}>
+            <Text
+              style={styles.name}
+              numberOfLines={1}
+              accessibilityLabel={`profile_card_name_${profile.id}`}
+              testID={`profile_card_name_${profile.id}`}
+            >
               {profile.name}
             </Text>
           </View>
@@ -163,6 +173,7 @@ export default function ProfileCard({ profile, onFollow, isFollowing = false }: 
             style={[styles.followButton, isFollowing && styles.followingButton]}
             onPress={() => onFollow(profile.id)}
             activeOpacity={0.7}
+            testID={`profile_card_follow_button_${profile.id}`}
           >
             <Text style={[styles.followButtonText, isFollowing && styles.followingButtonText]}>
               {isFollowing ? t('profile.following') : t('profile.follow')}
@@ -171,13 +182,23 @@ export default function ProfileCard({ profile, onFollow, isFollowing = false }: 
         </View>
 
         {/* Username */}
-        <Text style={styles.username} numberOfLines={1}>
+        <Text
+          style={styles.username}
+          numberOfLines={1}
+          accessibilityLabel={`profile_card_username_${profile.id}`}
+          testID={`profile_card_username_${profile.id}`}
+        >
           @{profile.username}
         </Text>
 
         {/* Bio */}
         {profile.bio && (
-          <Text style={styles.bio} numberOfLines={2}>
+          <Text
+            style={styles.bio}
+            numberOfLines={2}
+            accessibilityLabel={`profile_card_bio_${profile.id}`}
+            testID={`profile_card_bio_${profile.id}`}
+          >
             {profile.bio}
           </Text>
         )}

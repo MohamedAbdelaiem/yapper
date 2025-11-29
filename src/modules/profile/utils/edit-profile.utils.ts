@@ -1,21 +1,17 @@
 import * as ImagePicker from 'expo-image-picker';
-// eslint-disable-next-line react-native/split-platform-components
+
+import { DEFAULT_AVATAR_URL, DEFAULT_BANNER_URL } from '@/src/constants/defaults';
 import { ActionSheetIOS, Alert, Platform } from 'react-native';
 
-// Default images
-export const DEFAULT_AVATAR_URI =
-  'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png';
-export const DEFAULT_BANNER_URI =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='400'%3E%3Crect width='1200' height='400' fill='%23cccccc'/%3E%3C/svg%3E";
+export const DEFAULT_AVATAR_URI = DEFAULT_AVATAR_URL;
+export const DEFAULT_BANNER_URI = DEFAULT_BANNER_URL;
 
 export const pickImageFromLibrary = async (isAvatar: boolean): Promise<string | null> => {
   try {
-    // Check permission status first
     const { status } = await ImagePicker.getMediaLibraryPermissionsAsync();
 
     let finalStatus = status;
 
-    // Only request if not already granted
     if (status !== 'granted') {
       const { status: newStatus } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       finalStatus = newStatus;
@@ -28,7 +24,6 @@ export const pickImageFromLibrary = async (isAvatar: boolean): Promise<string | 
       return null;
     }
 
-    // Launch image picker
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
@@ -49,12 +44,10 @@ export const pickImageFromLibrary = async (isAvatar: boolean): Promise<string | 
 
 export const takePicture = async (isAvatar: boolean): Promise<string | null> => {
   try {
-    // Check permission status first
     const { status } = await ImagePicker.getCameraPermissionsAsync();
 
     let finalStatus = status;
 
-    // Only request if not already granted
     if (status !== 'granted') {
       const { status: newStatus } = await ImagePicker.requestCameraPermissionsAsync();
       finalStatus = newStatus;
@@ -67,7 +60,6 @@ export const takePicture = async (isAvatar: boolean): Promise<string | null> => 
       return null;
     }
 
-    // Launch camera
     const result = await ImagePicker.launchCameraAsync({
       allowsEditing: true,
       aspect: isAvatar ? [1, 1] : [3, 1],
@@ -126,25 +118,32 @@ export const showImagePickerOptions = (
       },
     );
   } else {
-    // Android Alert
-    Alert.alert('Change Image', 'Choose an option', [
+    Alert.alert(
+      'Change Image',
+      'Choose an option',
+      [
+        {
+          text: 'Choose from Library',
+          onPress: handleLibraryPick,
+        },
+        {
+          text: 'Take Picture',
+          onPress: handleTakePicture,
+        },
+        {
+          text: 'Delete Image',
+          onPress: onImageDeleted,
+          style: 'destructive',
+        },
+        {
+          text: 'Cancel',
+          style: 'cancel',
+        },
+      ],
       {
-        text: 'Choose from Library',
-        onPress: handleLibraryPick,
+        cancelable: true,
+        onDismiss: () => {},
       },
-      {
-        text: 'Take Picture',
-        onPress: handleTakePicture,
-      },
-      {
-        text: 'Delete Image',
-        onPress: onImageDeleted,
-        style: 'destructive',
-      },
-      {
-        text: 'Cancel',
-        style: 'cancel',
-      },
-    ]);
+    );
   }
 };

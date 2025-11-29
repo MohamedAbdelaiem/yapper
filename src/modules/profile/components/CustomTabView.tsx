@@ -18,11 +18,15 @@ interface ICustomTabViewProps {
   tabs: TabConfig[];
   initialTab?: string;
   scrollEnabled?: boolean;
+  lazy?: boolean;
+  userId?: string;
 }
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
-    container: { flex: 1 },
+    container: {
+      height: 800,
+    },
     tabBarContainer: {
       borderBottomWidth: 1,
       elevation: 0,
@@ -36,20 +40,32 @@ const createStyles = (theme: Theme) =>
       borderRadius: 2,
       backgroundColor: theme.colors.text.link,
     },
+    label: {
+      fontWeight: 'bold',
+      fontSize: 15,
+      textTransform: 'none',
+    },
+    scene: {
+      flex: 1,
+    },
   });
 
-const CustomTabView: React.FC<ICustomTabViewProps> = ({ tabs, initialTab, scrollEnabled = false }) => {
+const CustomTabView: React.FC<ICustomTabViewProps> = ({
+  tabs,
+  initialTab,
+  scrollEnabled = false,
+  lazy = true,
+  userId,
+}) => {
   const layout = useWindowDimensions();
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
-  // Map tabs to routes
   const routes: RouteType[] = tabs.map((tab) => ({
     key: tab.key,
     title: tab.title,
   }));
 
-  // Calculate initial index based on the parameter
   const getInitialIndex = () => {
     if (initialTab) {
       const tabIndex = routes.findIndex((route) => route.key.toLowerCase() === initialTab.toLowerCase());
@@ -60,12 +76,18 @@ const CustomTabView: React.FC<ICustomTabViewProps> = ({ tabs, initialTab, scroll
 
   const [index, setIndex] = useState(getInitialIndex());
 
-  // Dynamic scene renderer
+  const navigationState: NavigationState<RouteType> = {
+    index,
+    routes,
+  };
+
+  const activeTabKey = routes[index]?.key;
+
   const renderScene = ({ route }: { route: RouteType }) => {
     const tab = tabs.find((t) => t.key === route.key);
     if (!tab) return null;
     const Component = tab.component;
-    return <Component />;
+    return <Component activeTabKey={activeTabKey} userId={userId} />;
   };
 
   const renderTabBar = (props: SceneRendererProps & { navigationState: NavigationState<RouteType> }) => (
@@ -74,7 +96,7 @@ const CustomTabView: React.FC<ICustomTabViewProps> = ({ tabs, initialTab, scroll
       scrollEnabled={scrollEnabled}
       indicatorStyle={styles.activeUnderline}
       style={styles.tabBarContainer}
-      tabStyle={styles.tab}
+      tabStyle={[styles.tab, styles.label]}
       activeColor={theme.colors.text.link}
       inactiveColor={theme.colors.text.secondary}
     />
@@ -82,12 +104,15 @@ const CustomTabView: React.FC<ICustomTabViewProps> = ({ tabs, initialTab, scroll
 
   return (
     <TabView
-      navigationState={{ index, routes }}
+      navigationState={navigationState}
       renderScene={renderScene}
+      renderTabBar={renderTabBar}
       onIndexChange={setIndex}
       initialLayout={{ width: layout.width }}
-      renderTabBar={renderTabBar}
+      swipeEnabled={true}
+      lazy={lazy}
       style={styles.container}
+      testID="profile_custom_tab_view"
     />
   );
 };

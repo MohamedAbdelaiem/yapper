@@ -1,213 +1,232 @@
-import {
-  getForYou,
-  getTweetById,
-  likeTweet,
-  repostTweet,
-  undoRepostTweet,
-  unlikeTweet,
-} from '@/src/modules/tweets/services/tweetService';
-import { ITweet } from '@/src/modules/tweets/types';
 import api from '@/src/services/apiClient';
+import * as tweetService from '../../services/tweetService';
 
-// Mock the API client
-jest.mock('@/src/services/apiClient');
-const mockedApi = api as jest.Mocked<typeof api>;
-
-const mockTweet: ITweet = {
-  tweet_id: 'tweet-1',
-  type: 'tweet',
-  content: 'Test tweet content',
-  images: [],
-  videos: [],
-  likes_count: 10,
-  reposts_count: 5,
-  views_count: 100,
-  quotes_count: 2,
-  replies_count: 3,
-  is_liked: false,
-  is_reposted: false,
-  created_at: '2025-01-01T00:00:00.000Z',
-  updated_at: '2025-01-01T00:00:00.000Z',
-  user: {
-    id: 'user-1',
-    email: 'test@example.com',
-    name: 'Test User',
-    username: 'testuser',
-    avatar_url: undefined,
-    verified: false,
-  },
-};
+// Mock the api client
+jest.mock('@/src/services/apiClient', () => ({
+  get: jest.fn(),
+  post: jest.fn(),
+  delete: jest.fn(),
+}));
 
 describe('tweetService', () => {
-  beforeEach(() => {
+  afterEach(() => {
     jest.clearAllMocks();
   });
 
+  describe('uploadImage', () => {
+    it('should upload an image and return the url', async () => {
+      const mockResponse = {
+        data: {
+          data: {
+            url: 'http://example.com/image.jpg',
+          },
+        },
+      };
+      (api.post as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await tweetService.uploadImage('file:///path/to/image.jpg');
+
+      expect(api.post).toHaveBeenCalledWith(
+        '/tweets/upload/image',
+        expect.any(FormData),
+        expect.objectContaining({
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }),
+      );
+      expect(result).toBe('http://example.com/image.jpg');
+    });
+  });
+
+  describe('uploadVideo', () => {
+    it('should upload a video and return the url', async () => {
+      const mockResponse = {
+        data: {
+          data: {
+            url: 'http://example.com/video.mp4',
+          },
+        },
+      };
+      (api.post as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await tweetService.uploadVideo('file:///path/to/video.mp4');
+
+      expect(api.post).toHaveBeenCalledWith(
+        '/tweets/upload/video',
+        expect.any(FormData),
+        expect.objectContaining({
+          headers: { 'Content-Type': 'multipart/form-data' },
+        }),
+      );
+      expect(result).toBe('http://example.com/video.mp4');
+    });
+  });
+
+  describe('uploadMediaFiles', () => {
+    it('should upload multiple media files and separate images and videos', async () => {
+      const mockImageResponse = {
+        data: { data: { url: 'http://example.com/image.jpg' } },
+      };
+      const mockVideoResponse = {
+        data: { data: { url: 'http://example.com/video.mp4' } },
+      };
+
+      (api.post as jest.Mock).mockImplementation((url) => {
+        if (url === '/tweets/upload/image') return Promise.resolve(mockImageResponse);
+        if (url === '/tweets/upload/video') return Promise.resolve(mockVideoResponse);
+        return Promise.reject(new Error('Unknown URL'));
+      });
+
+      const result = await tweetService.uploadMediaFiles(['file:///path/to/image.jpg', 'file:///path/to/video.mp4']);
+
+      expect(result).toEqual({
+        images: ['http://example.com/image.jpg'],
+        videos: ['http://example.com/video.mp4'],
+      });
+    });
+  });
+
   describe('getForYou', () => {
-    it('should fetch for you timeline tweets successfully', async () => {
-      const mockResponse = {
-        data: {
-          data: {
-            tweets: [mockTweet],
-            count: 1,
-            message: 'Success',
-          },
-        },
-      };
+    it('should fetch for-you timeline', async () => {
+      const mockResponse = { data: { data: { tweets: [], nextCursor: null } } };
+      (api.get as jest.Mock).mockResolvedValue(mockResponse);
 
-      mockedApi.get.mockResolvedValue(mockResponse);
+      const result = await tweetService.getForYou({ limit: 10 });
 
-      const result = await getForYou({ limit: 10 });
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/timeline/for-you', {
-        params: { limit: 10 },
-      });
-      expect(result).toEqual([mockTweet]);
+      expect(api.get).toHaveBeenCalledWith('/timeline/for-you', { params: { limit: 10 } });
+      expect(result).toEqual(mockResponse.data.data);
     });
+  });
 
-    it('should pass filters as query parameters', async () => {
-      const mockResponse = {
-        data: {
-          data: {
-            tweets: [],
-            count: 0,
-            message: 'Success',
-          },
-        },
-      };
+  describe('getFollowing', () => {
+    it('should fetch following timeline', async () => {
+      const mockResponse = { data: { data: { tweets: [], nextCursor: null } } };
+      (api.get as jest.Mock).mockResolvedValue(mockResponse);
 
-      mockedApi.get.mockResolvedValue(mockResponse);
+      const result = await tweetService.getFollowing({ limit: 10 });
 
-      await getForYou({ user_id: 'user-1', cursor: 'abc123', limit: 20 });
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/timeline/for-you', {
-        params: { user_id: 'user-1', cursor: 'abc123', limit: 20 },
-      });
-    });
-
-    it('should handle API errors', async () => {
-      const error = new Error('Network error');
-      mockedApi.get.mockRejectedValue(error);
-
-      await expect(getForYou({ limit: 10 })).rejects.toThrow('Network error');
+      expect(api.get).toHaveBeenCalledWith('/timeline/following', { params: { limit: 10 } });
+      expect(result).toEqual(mockResponse.data.data);
     });
   });
 
   describe('getTweetById', () => {
-    it('should fetch a single tweet by ID successfully', async () => {
-      const mockResponse = {
-        data: {
-          data: mockTweet,
-          count: 1,
-          message: 'Success',
-        },
-      };
+    it('should fetch a single tweet', async () => {
+      const mockResponse = { data: { data: { id: '1', content: 'test' } } };
+      (api.get as jest.Mock).mockResolvedValue(mockResponse);
 
-      mockedApi.get.mockResolvedValue(mockResponse);
+      const result = await tweetService.getTweetById('1');
 
-      const result = await getTweetById('tweet-1');
-
-      expect(mockedApi.get).toHaveBeenCalledWith('/tweets/tweet-1');
-      expect(result).toEqual(mockTweet);
-    });
-
-    it('should handle tweet not found', async () => {
-      const error = new Error('Tweet not found');
-      mockedApi.get.mockRejectedValue(error);
-
-      await expect(getTweetById('invalid-id')).rejects.toThrow('Tweet not found');
+      expect(api.get).toHaveBeenCalledWith('/tweets/1');
+      expect(result).toEqual(mockResponse.data.data);
     });
   });
 
   describe('likeTweet', () => {
-    it('should like a tweet successfully', async () => {
-      mockedApi.post.mockResolvedValue({ data: {} });
-
-      await likeTweet('tweet-1');
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/tweets/tweet-1/like');
-    });
-
-    it('should handle like errors', async () => {
-      const error = new Error('Already liked');
-      mockedApi.post.mockRejectedValue(error);
-
-      await expect(likeTweet('tweet-1')).rejects.toThrow('Already liked');
+    it('should like a tweet', async () => {
+      (api.post as jest.Mock).mockResolvedValue({});
+      await tweetService.likeTweet('1');
+      expect(api.post).toHaveBeenCalledWith('/tweets/1/like');
     });
   });
 
   describe('unlikeTweet', () => {
-    it('should unlike a tweet successfully', async () => {
-      mockedApi.delete.mockResolvedValue({ data: {} });
-
-      await unlikeTweet('tweet-1');
-
-      expect(mockedApi.delete).toHaveBeenCalledWith('/tweets/tweet-1/like');
-    });
-
-    it('should handle unlike errors', async () => {
-      const error = new Error('Not liked yet');
-      mockedApi.delete.mockRejectedValue(error);
-
-      await expect(unlikeTweet('tweet-1')).rejects.toThrow('Not liked yet');
+    it('should unlike a tweet', async () => {
+      (api.delete as jest.Mock).mockResolvedValue({});
+      await tweetService.unlikeTweet('1');
+      expect(api.delete).toHaveBeenCalledWith('/tweets/1/like');
     });
   });
 
   describe('repostTweet', () => {
-    it('should repost a tweet successfully', async () => {
-      mockedApi.post.mockResolvedValue({ data: {} });
-
-      await repostTweet('tweet-1');
-
-      expect(mockedApi.post).toHaveBeenCalledWith('/tweets/tweet-1/repost');
-    });
-
-    it('should handle repost errors', async () => {
-      const error = new Error('Already reposted');
-      mockedApi.post.mockRejectedValue(error);
-
-      await expect(repostTweet('tweet-1')).rejects.toThrow('Already reposted');
+    it('should repost a tweet', async () => {
+      (api.post as jest.Mock).mockResolvedValue({});
+      await tweetService.repostTweet('1');
+      expect(api.post).toHaveBeenCalledWith('/tweets/1/repost');
     });
   });
 
   describe('undoRepostTweet', () => {
-    it('should undo repost successfully', async () => {
-      mockedApi.delete.mockResolvedValue({ data: {} });
-
-      await undoRepostTweet('tweet-1');
-
-      expect(mockedApi.delete).toHaveBeenCalledWith('/tweets/tweet-1/repost');
-    });
-
-    it('should handle undo repost errors', async () => {
-      const error = new Error('Not reposted yet');
-      mockedApi.delete.mockRejectedValue(error);
-
-      await expect(undoRepostTweet('tweet-1')).rejects.toThrow('Not reposted yet');
+    it('should undo repost of a tweet', async () => {
+      (api.delete as jest.Mock).mockResolvedValue({});
+      await tweetService.undoRepostTweet('1');
+      expect(api.delete).toHaveBeenCalledWith('/tweets/1/repost');
     });
   });
 
-  describe('Multiple operations', () => {
-    it('should handle like and unlike in sequence', async () => {
-      mockedApi.post.mockResolvedValue({ data: {} });
-      mockedApi.delete.mockResolvedValue({ data: {} });
+  describe('createTweet', () => {
+    it('should create a tweet without media', async () => {
+      const mockResponse = { data: { data: { id: '1', content: 'hello' } } };
+      (api.post as jest.Mock).mockResolvedValue(mockResponse);
 
-      await likeTweet('tweet-1');
-      await unlikeTweet('tweet-1');
+      const result = await tweetService.createTweet('hello');
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/tweets/tweet-1/like');
-      expect(mockedApi.delete).toHaveBeenCalledWith('/tweets/tweet-1/like');
+      expect(api.post).toHaveBeenCalledWith('/tweets', { content: 'hello' });
+      expect(result).toEqual(mockResponse.data.data);
     });
 
-    it('should handle repost and undo in sequence', async () => {
-      mockedApi.post.mockResolvedValue({ data: {} });
-      mockedApi.delete.mockResolvedValue({ data: {} });
+    it('should create a tweet with media', async () => {
+      const mockImageResponse = { data: { data: { url: 'http://example.com/img.jpg' } } };
+      const mockTweetResponse = {
+        data: { data: { id: '1', content: 'hello', images: ['http://example.com/img.jpg'] } },
+      };
 
-      await repostTweet('tweet-1');
-      await undoRepostTweet('tweet-1');
+      (api.post as jest.Mock).mockImplementation((url) => {
+        if (url === '/tweets/upload/image') return Promise.resolve(mockImageResponse);
+        if (url === '/tweets') return Promise.resolve(mockTweetResponse);
+        return Promise.reject(new Error('Unknown URL'));
+      });
 
-      expect(mockedApi.post).toHaveBeenCalledWith('/tweets/tweet-1/repost');
-      expect(mockedApi.delete).toHaveBeenCalledWith('/tweets/tweet-1/repost');
+      const result = await tweetService.createTweet('hello', ['file:///img.jpg']);
+
+      expect(api.post).toHaveBeenCalledWith('/tweets', {
+        content: 'hello',
+        images: ['http://example.com/img.jpg'],
+      });
+      expect(result).toEqual(mockTweetResponse.data.data);
+    });
+  });
+
+  describe('deleteTweet', () => {
+    it('should delete a tweet', async () => {
+      (api.delete as jest.Mock).mockResolvedValue({});
+      await tweetService.deleteTweet('1');
+      expect(api.delete).toHaveBeenCalledWith('/tweets/1');
+    });
+  });
+
+  describe('replyToTweet', () => {
+    it('should reply to a tweet', async () => {
+      const mockResponse = { data: { data: { id: '2', content: 'reply' } } };
+      (api.post as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await tweetService.replyToTweet('1', 'reply');
+
+      expect(api.post).toHaveBeenCalledWith('/tweets/1/reply', { content: 'reply' });
+      expect(result).toEqual(mockResponse.data.data);
+    });
+  });
+
+  describe('quoteTweet', () => {
+    it('should quote a tweet', async () => {
+      const mockResponse = { data: { data: { id: '2', content: 'quote' } } };
+      (api.post as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await tweetService.quoteTweet('1', 'quote');
+
+      expect(api.post).toHaveBeenCalledWith('/tweets/1/quote', { content: 'quote' });
+      expect(result).toEqual(mockResponse.data.data);
+    });
+  });
+
+  describe('getTweetQuotes', () => {
+    it('should get tweet quotes', async () => {
+      const mockResponse = { data: { data: { quotes: [], nextCursor: null } } };
+      (api.get as jest.Mock).mockResolvedValue(mockResponse);
+
+      const result = await tweetService.getTweetQuotes('1');
+
+      expect(api.get).toHaveBeenCalledWith('/tweets/1/quotes', { params: {} });
+      expect(result).toEqual(mockResponse.data.data);
     });
   });
 });

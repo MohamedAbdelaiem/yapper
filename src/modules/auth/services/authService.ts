@@ -11,8 +11,6 @@ import {
   IOAuthBirthDateResponse,
   IOAuthResponse,
   IOAuthUserNameRequest,
-  mapLoginResponseDTOToLoginResponse,
-  mapOAuthResponseDTOToOAuthResponse,
 } from '../types';
 
 // Complete auth session when app resumes
@@ -34,7 +32,7 @@ export const login = async (credentials: ILoginCredentials): Promise<ILoginRespo
   try {
     const res = await api.post('/auth/login', credentials);
     await setAuthProvider('local');
-    return mapLoginResponseDTOToLoginResponse(res.data);
+    return res.data;
   } catch (error) {
     throw new Error(extractErrorMessage(error));
   }
@@ -90,9 +88,9 @@ export const googleSignIn = async (): Promise<ILoginResponse | IOAuthResponse> =
     await setAuthProvider('google');
 
     if (res.data.data.needs_completion) {
-      return mapOAuthResponseDTOToOAuthResponse(res.data);
+      return res.data;
     }
-    return mapLoginResponseDTOToLoginResponse(res.data);
+    return res.data;
   } catch (error) {
     throw new Error(extractErrorMessage(error));
   }
@@ -146,9 +144,9 @@ export const githubSignIn = async (): Promise<ILoginResponse | IOAuthResponse> =
 
     await setAuthProvider('github');
     if (res.data.data.needs_completion) {
-      return mapOAuthResponseDTOToOAuthResponse(res.data);
+      return res.data;
     }
-    return mapLoginResponseDTOToLoginResponse(res.data);
+    return res.data;
   } catch (error) {
     throw new Error(extractErrorMessage(error));
   }
@@ -157,8 +155,8 @@ export const githubSignIn = async (): Promise<ILoginResponse | IOAuthResponse> =
 export const OAuthStep1 = async (credentials: IOAuthBirthDateRequest): Promise<IOAuthBirthDateResponse> => {
   try {
     const res = await api.post('/auth/oauth/complete/step1', {
-      oauth_session_token: credentials.oauth_session_token,
-      birth_date: credentials.birth_date,
+      oauth_session_token: credentials.oauthSessionToken,
+      birth_date: credentials.birthDate,
     });
     return res.data;
   } catch (error) {
@@ -169,10 +167,10 @@ export const OAuthStep1 = async (credentials: IOAuthBirthDateRequest): Promise<I
 export const OAuthStep2 = async (credentials: IOAuthUserNameRequest): Promise<ILoginResponse> => {
   try {
     const res = await api.post('/auth/oauth/complete/step2', {
-      oauth_session_token: credentials.oauth_session_token,
+      oauth_session_token: credentials.oauthSessionToken,
       username: credentials.username,
     });
-    return mapLoginResponseDTOToLoginResponse(res.data);
+    return res.data;
   } catch (error) {
     throw new Error(extractErrorMessage(error));
   }

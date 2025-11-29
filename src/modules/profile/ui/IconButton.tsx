@@ -6,11 +6,18 @@ type Props = {
   onPress?: () => void;
   style?: ViewStyle;
   children?: React.ReactNode;
+  testID?: string;
 };
 
-const IconButton: React.FC<Props> = ({ onPress, style, children }) => {
+const IconButton: React.FC<Props> = ({ onPress, style, children, testID }) => {
   return (
-    <TouchableOpacity style={[styles.wrapper, style]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.wrapper, style]}
+      onPress={onPress}
+      testID={testID}
+      accessibilityLabel={testID || 'icon_button'}
+      accessibilityRole="button"
+    >
       {children}
     </TouchableOpacity>
   );

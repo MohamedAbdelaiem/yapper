@@ -17,22 +17,18 @@ export type UserListQuery =
 export interface IUserListResponse {
   users: IUser[];
   nextPage?: number | null;
+  nextCursor?: string | null;
+  hasMore?: boolean;
 }
 
 export interface IUserListResponseBackend {
   data: {
     data: IUserDTO[];
-    pagination: {
-      total_items: number;
-      total_pages: number;
-      current_page: number;
-      items_per_page: number;
-      has_next_page: boolean;
-      has_previous_page: boolean;
-    };
+    next_cursor?: string;
+    has_more?: boolean;
   };
   count: number;
   message: string;
 }
 
-export type FetchUserListParams = UserListQuery & { page?: number | null };
+export type FetchUserListParams = UserListQuery & { cursor?: string; limit?: number };

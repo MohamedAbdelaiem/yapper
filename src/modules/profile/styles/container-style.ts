@@ -7,6 +7,16 @@ export const createContainerStyles = (theme: Theme) =>
       flex: 1,
       backgroundColor: theme.colors.background.primary,
     },
+    scrollView: {
+      flex: 1,
+    },
+    scrollContent: {
+      // flexGrow: 1,
+      // paddingBottom: 100,
+    },
+    tabsContainer: {
+      flex: 99999999,
+    },
   });
 
 export default createContainerStyles;

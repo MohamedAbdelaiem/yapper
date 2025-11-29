@@ -1,10 +1,18 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import LoadingIndicator from '../../../components/LoadingIndicator';
 import { Theme } from '../../../constants/theme';
 import { useTheme } from '../../../context/ThemeContext';
+import { useAuthStore } from '../../../store/useAuthStore';
+import { ITweet } from '../../tweets/types';
+import { useProfilePosts } from '../context/ProfilePostsContext';
+import { useUserLikesData } from '../hooks/useUserLikes';
+import { useUserMediaData } from '../hooks/useUserMedia';
+import { useUserPostsData } from '../hooks/useUserPosts';
+import { useUserRepliesData } from '../hooks/useUserReplies';
 import CustomTabView, { TabConfig } from './CustomTabView';
-import WhoToFollow from './WhoToFollow';
+import ProfilePostsList from './ProfilePostsList';
 
 const createStyles = (theme: Theme) =>
   StyleSheet.create({
@@ -17,60 +25,313 @@ const createStyles = (theme: Theme) =>
     },
   });
 
-const PostsRoute = () => {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  return (
-    <ScrollView style={styles.page}>
-      <WhoToFollow />
-      <Text style={styles.placeholderText}>{t('profile.placeholders.tweets')}</Text>
-    </ScrollView>
-  );
-};
-
-const RepliesRoute = () => {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  return (
-    <ScrollView style={styles.page}>
-      <WhoToFollow />
-      <Text style={styles.placeholderText}>{t('profile.placeholders.tweetsReplies')}</Text>
-    </ScrollView>
-  );
-};
-
-const MediaRoute = () => {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  return (
-    <View style={styles.page}>
-      <Text style={styles.placeholderText}>{t('profile.placeholders.media')}</Text>
-    </View>
-  );
-};
-
-const LikesRoute = () => {
-  const { t } = useTranslation();
-  const { theme } = useTheme();
-  const styles = useMemo(() => createStyles(theme), [theme]);
-  return (
-    <View style={styles.page}>
-      <Text style={styles.placeholderText}>{t('profile.placeholders.likes')}</Text>
-    </View>
-  );
-};
-
-export default function ProfileTabs() {
-  const { t } = useTranslation();
-  const tabs: TabConfig[] = [
-    { key: 'tweets', title: t('profile.tabs.tweets'), component: PostsRoute },
-    { key: 'tweetsReplies', title: t('profile.tabs.tweetsReplies'), component: RepliesRoute },
-    { key: 'media', title: t('profile.tabs.media'), component: MediaRoute },
-    { key: 'likes', title: t('profile.tabs.likes'), component: LikesRoute },
-  ];
-
-  return <CustomTabView tabs={tabs} scrollEnabled={true} />;
+interface ProfileTabsProps {
+  userId?: string;
 }
+
+const PostsRoute = ({ userId, activeTabKey }: { userId: string; activeTabKey?: string }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const isActive = activeTabKey === 'tweets';
+  const { posts, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useUserPostsData(
+    userId,
+    isActive,
+  );
+  const { registerFetchNextPage, registerRefresh } = useProfilePosts();
+
+  useEffect(() => {
+    if (isActive) {
+      registerFetchNextPage(
+        () => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        },
+        hasNextPage ?? false,
+        isFetchingNextPage,
+      );
+    }
+  }, [isActive, registerFetchNextPage, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    if (isActive) {
+      registerRefresh(() => {
+        refetch();
+      });
+    }
+  }, [isActive, registerRefresh, refetch]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.page} testID="posts_route_loading">
+        <LoadingIndicator />
+      </View>
+    );
+  }
+
+  if (posts.length === 0) {
+    return (
+      <View style={styles.page} testID="posts_route_empty">
+        <Text style={styles.placeholderText}>{t('profile.placeholders.tweets')}</Text>
+      </View>
+    );
+  }
+
+  const handleEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  return (
+    <View style={styles.page}>
+      <ProfilePostsList
+        data={posts}
+        isLoading={isLoading}
+        isFetchingNextPage={isFetchingNextPage}
+        onEndReached={handleEndReached}
+        isTabActive={isActive}
+      />
+    </View>
+  );
+};
+
+const RepliesRoute = ({ userId, activeTabKey }: { userId: string; activeTabKey?: string }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const isActive = activeTabKey === 'tweetsReplies';
+  const { replies, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useUserRepliesData(
+    userId,
+    isActive,
+  );
+  const { registerFetchNextPage, registerRefresh } = useProfilePosts();
+
+  useEffect(() => {
+    if (isActive) {
+      registerFetchNextPage(
+        () => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        },
+        hasNextPage ?? false,
+        isFetchingNextPage,
+      );
+    }
+  }, [isActive, registerFetchNextPage, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    if (isActive) {
+      registerRefresh(() => {
+        refetch();
+      });
+    }
+  }, [isActive, registerRefresh, refetch]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.page} testID="replies_route_loading">
+        <LoadingIndicator />
+      </View>
+    );
+  }
+
+  if (replies.length === 0) {
+    return (
+      <View style={styles.page} testID="replies_route_empty">
+        <Text style={styles.placeholderText}>{t('profile.placeholders.tweetsReplies')}</Text>
+      </View>
+    );
+  }
+
+  const handleEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  return (
+    <View style={styles.page}>
+      <ProfilePostsList
+        data={replies}
+        isLoading={isLoading}
+        isFetchingNextPage={isFetchingNextPage}
+        onEndReached={handleEndReached}
+        isTabActive={isActive}
+      />
+    </View>
+  );
+};
+
+const MediaRoute = ({ userId, activeTabKey }: { userId: string; activeTabKey?: string }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const isActive = activeTabKey === 'media';
+  const { media, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useUserMediaData(
+    userId,
+    isActive,
+  );
+  const { registerFetchNextPage, registerRefresh } = useProfilePosts();
+
+  useEffect(() => {
+    if (isActive) {
+      registerFetchNextPage(
+        () => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        },
+        hasNextPage ?? false,
+        isFetchingNextPage,
+      );
+    }
+  }, [isActive, registerFetchNextPage, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    if (isActive) {
+      registerRefresh(() => {
+        refetch();
+      });
+    }
+  }, [isActive, registerRefresh, refetch]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.page} testID="media_route_loading">
+        <LoadingIndicator />
+      </View>
+    );
+  }
+
+  if (media.length === 0) {
+    return (
+      <View style={styles.page} testID="media_route_empty">
+        <Text style={styles.placeholderText}>{t('profile.placeholders.media')}</Text>
+      </View>
+    );
+  }
+
+  const handleEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  return (
+    <View style={styles.page}>
+      <ProfilePostsList
+        data={media}
+        isLoading={isLoading}
+        isFetchingNextPage={isFetchingNextPage}
+        onEndReached={handleEndReached}
+        isTabActive={isActive}
+      />
+    </View>
+  );
+};
+
+const LikesRoute = ({ userId, activeTabKey }: { userId: string; activeTabKey?: string }) => {
+  const { t } = useTranslation();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const isActive = activeTabKey === 'likes';
+  const { likes, isLoading, isFetchingNextPage, fetchNextPage, hasNextPage, refetch } = useUserLikesData(
+    userId,
+    isActive,
+  );
+  const { registerFetchNextPage, registerRefresh } = useProfilePosts();
+
+  useEffect(() => {
+    if (isActive) {
+      registerFetchNextPage(
+        () => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        },
+        hasNextPage ?? false,
+        isFetchingNextPage,
+      );
+    }
+  }, [isActive, registerFetchNextPage, fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  useEffect(() => {
+    if (isActive) {
+      registerRefresh(() => {
+        refetch();
+      });
+    }
+  }, [isActive, registerRefresh, refetch]);
+
+  if (isLoading) {
+    return (
+      <View style={styles.page} testID="likes_route_loading">
+        <LoadingIndicator />
+      </View>
+    );
+  }
+
+  if (likes.length === 0) {
+    return (
+      <View style={styles.page} testID="likes_route_empty">
+        <Text style={styles.placeholderText}>{t('profile.placeholders.likes')}</Text>
+      </View>
+    );
+  }
+
+  const handleEndReached = () => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  };
+
+  return (
+    <View style={styles.page}>
+      <ProfilePostsList
+        data={likes as ITweet[]}
+        isLoading={isLoading}
+        isFetchingNextPage={isFetchingNextPage}
+        onEndReached={handleEndReached}
+        isTabActive={isActive}
+      />
+    </View>
+  );
+};
+
+const ProfileTabs = React.memo(({ userId }: ProfileTabsProps) => {
+  const { t } = useTranslation();
+  const currentUser = useAuthStore((state) => state.user);
+  const effectiveUserId = userId || currentUser?.id || '';
+  const isOwnProfile = !userId || userId === currentUser?.id;
+
+  const tabs: TabConfig[] = useMemo(
+    () => [
+      { key: 'tweets', title: t('profile.tabs.tweets'), component: PostsRoute },
+      {
+        key: 'tweetsReplies',
+        title: t('profile.tabs.tweetsReplies'),
+        component: RepliesRoute,
+      },
+      { key: 'media', title: t('profile.tabs.media'), component: MediaRoute },
+      ...(isOwnProfile
+        ? [
+            {
+              key: 'likes',
+              title: t('profile.tabs.likes'),
+              component: LikesRoute,
+            },
+          ]
+        : []),
+    ],
+    [t, isOwnProfile],
+  );
+
+  return <CustomTabView tabs={tabs} scrollEnabled={true} userId={effectiveUserId} />;
+});
+
+ProfileTabs.displayName = 'ProfileTabs';
+
+export default ProfileTabs;

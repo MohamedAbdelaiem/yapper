@@ -1,3 +1,4 @@
+import { useAuthStore } from '@/src/store/useAuthStore';
 import { useState } from 'react';
 import Toast from 'react-native-toast-message';
 import { followUser, unfollowUser } from '../services/profileService';
@@ -8,15 +9,10 @@ interface UseFollowUserReturn {
   toggleFollow: (userId: string) => Promise<void>;
   setIsFollowing: (value: boolean) => void;
 }
-
-/**
- * Custom hook to handle follow/unfollow functionality
- * @param initialFollowState - Initial follow state
- * @returns Object with follow state and toggle function
- */
 export const useFollowUser = (initialFollowState: boolean = false): UseFollowUserReturn => {
   const [isFollowing, setIsFollowing] = useState(initialFollowState);
   const [isLoading, setIsLoading] = useState(false);
+  const fetchAndUpdateUser = useAuthStore((state) => state.fetchAndUpdateUser);
 
   const toggleFollow = async (userId: string) => {
     if (isLoading || !userId) return;
@@ -29,7 +25,6 @@ export const useFollowUser = (initialFollowState: boolean = false): UseFollowUse
       setIsFollowing(!isFollowing);
 
       if (isFollowing) {
-        // Unfollow
         await unfollowUser(userId);
         Toast.show({
           type: 'success',
@@ -38,8 +33,8 @@ export const useFollowUser = (initialFollowState: boolean = false): UseFollowUse
           position: 'bottom',
           visibilityTime: 2000,
         });
+        await fetchAndUpdateUser();
       } else {
-        // Follow
         await followUser(userId);
         Toast.show({
           type: 'success',
@@ -48,9 +43,9 @@ export const useFollowUser = (initialFollowState: boolean = false): UseFollowUse
           position: 'bottom',
           visibilityTime: 2000,
         });
+        await fetchAndUpdateUser();
       }
     } catch (error) {
-      // Revert on error
       setIsFollowing(previousState);
       const errorMessage = error instanceof Error ? error.message : 'Failed to update follow status';
       Toast.show({

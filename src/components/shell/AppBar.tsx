@@ -1,12 +1,13 @@
+import { DEFAULT_AVATAR_URL } from '@/src/constants/defaults';
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
+import { useAuthStore } from '@/src/store/useAuthStore';
 import { BlurView } from 'expo-blur';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUiShell } from '../../context/UiShellContext';
-import { useAuthStore } from '@/src/store/useAuthStore';
 
 interface IAppBarProps {
   title?: string;
@@ -40,12 +41,13 @@ const AppBar: React.FC<IAppBarProps> = (props) => {
                 <Pressable
                   onPress={toggleSideMenu}
                   accessibilityLabel={t('accessibility.openMenu')}
+                  testID="appbar_menu_button"
                   accessibilityRole="button"
                   style={styles.avatarButton}
                 >
                   <View style={styles.avatarBackground}>
                     <Image
-                      source={{ uri: user?.avatarUrl || 'https://randomuser.me/api/portraits/men/1.jpg' }}
+                      source={{ uri: user?.avatarUrl || DEFAULT_AVATAR_URL }}
                       style={styles.avatar}
                       resizeMode="cover"
                     />
@@ -83,7 +85,7 @@ const createStyles = (theme: Theme) =>
       flexDirection: 'column',
       alignItems: 'center',
       paddingHorizontal: theme.spacing.md,
-      backgroundColor: theme.colors.background.primary + '6F',
+      backgroundColor: theme.colors.background.primary + 'DF',
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },

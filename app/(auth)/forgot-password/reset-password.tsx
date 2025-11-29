@@ -1,4 +1,6 @@
 import ActivityLoader from '@/src/components/ActivityLoader';
+import { Theme } from '@/src/constants/theme';
+import { useTheme } from '@/src/context/ThemeContext';
 import ResetPassword from '@/src/modules/auth/components/forgetPassword/ResetPassword';
 import BottomBar from '@/src/modules/auth/components/shared/BottomBar';
 import TopBar from '@/src/modules/auth/components/shared/TopBar';
@@ -9,11 +11,14 @@ import { ButtonOptions } from '@/src/modules/auth/utils/enums';
 import { router } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 const ResetPasswordScreen = () => {
   const { t } = useTranslation();
+  const { theme } = useTheme();
+
+  const styles = React.useMemo(() => createStyles(theme), [theme]);
 
   // Zustand store
   const identifier = useForgotPasswordStore((state) => state.identifier);
@@ -69,12 +74,14 @@ const ResetPasswordScreen = () => {
     setIsLoading(true);
     try {
       const succeeded = await resetPassword({
-        resetToken,
-        newPassword,
+        resetToken: resetToken,
+        newPassword: newPassword,
         identifier,
       });
 
       if (succeeded) {
+        useForgotPasswordStore.getState().setNewPassword(newPassword);
+
         Toast.show({
           type: 'success',
           text1: t('auth.forgotPassword.successTitle'),
@@ -106,20 +113,22 @@ const ResetPasswordScreen = () => {
   };
 
   return (
-    <>
+    <View style={styles.container}>
       <ActivityLoader visible={isLoading} message={t('auth.forgotPassword.resettingPassword')} />
       <TopBar onBackPress={handleTopBarBackPress} />
-      <ResetPassword
-        userIdentifier={identifier}
-        newPassword={newPassword}
-        confirmPassword={confirmPassword}
-        onNewPasswordChange={setNewPassword}
-        onConfirmPasswordChange={setConfirmPassword}
-        onToggleNewPasswordVisibility={() => setIsNewPasswordVisible(!isNewPasswordVisible)}
-        onToggleConfirmPasswordVisibility={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
-        isNewPasswordVisible={isNewPasswordVisible}
-        isConfirmPasswordVisible={isConfirmPasswordVisible}
-      />
+      <View style={styles.content}>
+        <ResetPassword
+          userIdentifier={identifier}
+          newPassword={newPassword}
+          confirmPassword={confirmPassword}
+          onNewPasswordChange={setNewPassword}
+          onConfirmPasswordChange={setConfirmPassword}
+          onToggleNewPasswordVisibility={() => setIsNewPasswordVisible(!isNewPasswordVisible)}
+          onToggleConfirmPasswordVisibility={() => setIsConfirmPasswordVisible(!isConfirmPasswordVisible)}
+          isNewPasswordVisible={isNewPasswordVisible}
+          isConfirmPasswordVisible={isConfirmPasswordVisible}
+        />
+      </View>
       <BottomBar
         rightButton={{
           label: ButtonOptions.NEXT,
@@ -136,8 +145,17 @@ const ResetPasswordScreen = () => {
           type: 'secondary',
         }}
       />
-    </>
+    </View>
   );
 };
+
+const createStyles = (theme: Theme) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: theme.colors.background.primary },
+    content: {
+      flex: 1,
+      justifyContent: 'flex-start',
+    },
+  });
 
 export default ResetPasswordScreen;

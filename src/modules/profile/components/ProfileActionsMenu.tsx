@@ -29,7 +29,6 @@ const ProfileActionsMenu: React.FC<IProfileActionsMenuProps> = ({
   const [isBlocked, setIsBlocked] = useState(initialBlocked);
   const [isMuteLoading, setIsMuteLoading] = useState(false);
 
-  // Sync state when initialMuted or initialBlocked changes
   useEffect(() => {
     setIsMuted(initialMuted);
   }, [initialMuted]);
@@ -46,7 +45,6 @@ const ProfileActionsMenu: React.FC<IProfileActionsMenuProps> = ({
       await onMute();
       setIsMuted(!isMuted);
     } catch (error) {
-      // Error is handled in parent component
       console.error('Error toggling mute:', error);
     } finally {
       setIsMuteLoading(false);
@@ -60,7 +58,6 @@ const ProfileActionsMenu: React.FC<IProfileActionsMenuProps> = ({
       await onBlock();
       setIsBlocked(!isBlocked);
     } catch (error) {
-      // Error is handled in parent component
       console.error('Error toggling block:', error);
     }
   };
@@ -75,16 +72,26 @@ const ProfileActionsMenu: React.FC<IProfileActionsMenuProps> = ({
         <VolumeOff color={theme.colors.text.primary} size={20} strokeWidth={1.5} />
       ),
       disabled: isMuteLoading,
+      testID: 'profile_actions_mute_button',
     },
     {
       label: isBlocked ? t('profile.actions.unblock') : t('profile.actions.block'),
       onPress: handleBlockToggle,
       icon: <Ban color={theme.colors.text.primary} size={20} strokeWidth={1.5} />,
       disabled: blockLoading,
+      testID: 'profile_actions_block_button',
     },
   ];
 
-  return <DropdownMenu visible={visible} onClose={onClose} items={menuItems} position={{ top: 100, right: 16 }} />;
+  return (
+    <DropdownMenu
+      visible={visible}
+      onClose={onClose}
+      items={menuItems}
+      position={{ top: 100, right: 16 }}
+      testID="profile_actions_menu"
+    />
+  );
 };
 
 export default ProfileActionsMenu;

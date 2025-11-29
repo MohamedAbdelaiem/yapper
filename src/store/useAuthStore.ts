@@ -27,8 +27,33 @@ export const useAuthStore = create<IAuthState>((set) => ({
     try {
       const token = await getToken();
       if (token) {
-        set({ token });
-        tokenRefreshService.start();
+        // Validate token by fetching user data
+        try {
+          set({ token });
+          const data = await getMyUser();
+          set({
+            user: {
+              id: data.userId,
+              email: '',
+              name: data.name,
+              username: data.username,
+              bio: data.bio,
+              avatarUrl: data.avatarUrl,
+              coverUrl: data.coverUrl,
+              country: data.country || undefined,
+              createdAt: data.createdAt,
+              followers: data.followersCount,
+              following: data.followingCount,
+              birthDate: '',
+            },
+          });
+          tokenRefreshService.start();
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        } catch (validationErr) {
+          // Token is invalid, clear it
+          await deleteToken();
+          set({ user: null, token: null });
+        }
       }
     } catch (err) {
       console.error('Auth initialization failed:', err);
@@ -57,8 +82,24 @@ export const useAuthStore = create<IAuthState>((set) => ({
   /** Refresh user data from server */
   fetchAndUpdateUser: async () => {
     try {
-      const { data } = await getMyUser();
-      set({ user: data });
+      const data = await getMyUser();
+      // Map camelCase response to IUser format
+      set({
+        user: {
+          id: data.userId,
+          email: '', // Not provided
+          name: data.name,
+          username: data.username,
+          bio: data.bio,
+          avatarUrl: data.avatarUrl,
+          coverUrl: data.coverUrl,
+          country: data.country || undefined,
+          createdAt: data.createdAt,
+          followers: data.followersCount,
+          following: data.followingCount,
+          birthDate: data.birthDate || undefined,
+        },
+      });
     } catch (err) {
       console.error('Failed to fetch user:', err);
     }

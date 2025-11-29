@@ -3,34 +3,48 @@ import GrokLogo from '@/src/components/icons/GrokLogo';
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
 import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
 import { MoreHorizontal } from 'lucide-react-native';
 import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { DEFAULT_AVATAR_URI } from '../../profile/utils/edit-profile.utils';
 import { ITweet } from '../types';
 import ActionsRow from './ActionsRow';
 import ParentTweet from './ParentTweet';
 import RepostIndicator from './RepostIndicator';
+import TweetMedia from './TweetMedia';
 import UserInfoRow from './UserInfoRow';
 
 interface ITweetProps {
   tweet: ITweet;
-  parentTweet?: ITweet | null;
   onReplyPress: () => void;
-  onRepostPress: (isReposted: boolean) => void;
-  onLikePress: (isLiked: boolean) => void;
-  onViewsPress: () => void;
-  onBookmarkPress: () => void;
-  onSharePress: () => void;
+  onLike: (isLiked: boolean) => void;
+  onViewPostInteractions: (tweetId: string, ownerId: string) => void;
+  onBookmark: () => void;
+  onShare: () => void;
+  openSheet: () => void;
+
+  isVisible?: boolean;
+  onTweetPress: (tweetId: string) => void;
+  onAvatarPress: (userId: string) => void;
 }
 
 const Tweet: React.FC<ITweetProps> = (props) => {
-  const { tweet, parentTweet, onReplyPress, onRepostPress, onLikePress, onViewsPress, onSharePress } = props;
+  const {
+    tweet,
+    onReplyPress,
+    onLike,
+    onViewPostInteractions,
+    // onBookmark,
+    onShare,
+    openSheet,
+    isVisible = true,
+    onTweetPress,
+    onAvatarPress,
+  } = props;
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const { t } = useTranslation();
-  const router = useRouter();
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [menuVisible, setMenuVisible] = useState(false);
@@ -53,34 +67,33 @@ const Tweet: React.FC<ITweetProps> = (props) => {
     {
       label: t('tweetActivity.viewPostInteractions'),
       onPress: () => {
-        router.push({
-          pathname: '/(protected)/tweets/[tweetId]/activity',
-          params: {
-            tweetId: tweet.tweet_id,
-            ownerId: tweet.user.id,
-          },
-        });
+        onViewPostInteractions(tweet.tweetId, tweet.user.id);
       },
     },
   ];
+
   return (
-    <View style={styles.container} accessibilityLabel="tweet_container_main">
+    <Pressable
+      style={styles.container}
+      accessibilityLabel="tweet_container_main"
+      testID="tweet_container_main"
+      onPress={() => onTweetPress(tweet.tweetId)}
+    >
       {tweet.type === 'repost' && (
-        <RepostIndicator repostById={tweet.reposted_by?.id} repostedByName={tweet.reposted_by?.name} />
+        <RepostIndicator repostById={tweet.repostedBy?.id} repostedByName={tweet.repostedBy?.name} />
       )}
       <View style={styles.tweetContainer}>
         <View style={styles.imageColumn}>
           <Pressable
-            onPress={() => router.push({ pathname: '/(protected)/(profile)/[id]', params: { id: tweet.user.id } })}
+            onPress={() => onAvatarPress(tweet.user.id)}
+            accessibilityLabel="tweet_avatar"
+            testID="tweet_avatar"
           >
             <Image
-              source={
-                tweet.user.avatar_url
-                  ? { uri: tweet.user.avatar_url }
-                  : require('@/assets/images/avatar-placeholder.png')
-              }
+              source={tweet.user.avatarUrl ? { uri: tweet.user.avatarUrl } : DEFAULT_AVATAR_URI}
               style={styles.avatar}
               accessibilityLabel="tweet_image_avatar"
+              cachePolicy="memory-disk"
             />
           </Pressable>
         </View>
@@ -90,35 +103,50 @@ const Tweet: React.FC<ITweetProps> = (props) => {
             <View style={styles.optionsRow}>
               <GrokLogo size={16} color={theme.colors.text.secondary} />
               <View ref={moreButtonRef} collapsable={false}>
-                <TouchableOpacity onPress={handleMorePress} hitSlop={8}>
+                <TouchableOpacity
+                  onPress={handleMorePress}
+                  hitSlop={8}
+                  accessibilityLabel="tweet_button_more"
+                  testID="tweet_button_more"
+                >
                   <MoreHorizontal size={16} color={theme.colors.text.secondary} />
                 </TouchableOpacity>
               </View>
             </View>
           </View>
           <View style={styles.tweetContent}>
-            <Text style={styles.tweetText}>{tweet.content}</Text>
+            <Text style={styles.tweetText} accessibilityLabel="tweet_content_text" testID="tweet_content_text">
+              {tweet.content}
+            </Text>
           </View>
-          {parentTweet && <ParentTweet tweet={parentTweet} />}
+          <TweetMedia images={tweet.images} videos={tweet.videos} tweetId={tweet.tweetId} isVisible={isVisible} />
+
+          {tweet.parentTweet && (
+            <View style={{ marginTop: theme.spacing.xs }}>
+              <ParentTweet tweet={tweet.parentTweet} isVisible={isVisible} />
+            </View>
+          )}
+
           <ActionsRow
             tweet={tweet}
+            size="small"
             onReplyPress={onReplyPress}
-            onRepostPress={onRepostPress}
-            onLikePress={onLikePress}
-            onViewsPress={onViewsPress}
+            onRepostPress={openSheet}
+            onLikePress={onLike}
             onBookmarkPress={() => setIsBookmarked(!isBookmarked)}
             isBookmarked={isBookmarked}
-            onSharePress={onSharePress}
+            onSharePress={onShare}
+          />
+
+          <DropdownMenu
+            visible={menuVisible}
+            onClose={() => setMenuVisible(false)}
+            items={menuItems}
+            position={menuPosition}
           />
         </View>
       </View>
-      <DropdownMenu
-        visible={menuVisible}
-        onClose={() => setMenuVisible(false)}
-        items={menuItems}
-        position={menuPosition}
-      />
-    </View>
+    </Pressable>
   );
 };
 
@@ -143,13 +171,13 @@ const createStyles = (theme: Theme) =>
     },
     topRow: {
       flexDirection: 'row',
-      justifyContent: 'space-between',
       alignItems: 'center',
+      gap: theme.spacing.sm,
     },
     optionsRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: theme.spacing.sm,
+      gap: theme.spacing.xs,
     },
     tweetContent: {},
     avatar: {

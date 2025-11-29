@@ -1,24 +1,38 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
 import { Image } from 'expo-image';
+import { router } from 'expo-router';
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { ITweet } from '../types';
+import TweetMedia from './TweetMedia';
 import UserInfoRow from './UserInfoRow';
 
 interface IParentTweetProps {
   tweet: ITweet;
+  isVisible?: boolean;
 }
 const ParentTweet: React.FC<IParentTweetProps> = (props) => {
-  const { tweet } = props;
+  const { tweet, isVisible = true } = props;
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
   return (
-    <View style={styles.container} accessibilityLabel="tweet_container_parent">
+    <Pressable
+      style={styles.container}
+      accessibilityLabel="tweet_container_parent"
+      onPress={() => {
+        router.push({
+          pathname: '/(protected)/tweets/[tweetId]',
+          params: {
+            tweetId: tweet.tweetId,
+          },
+        });
+      }}
+    >
       <View style={styles.userInfo}>
         <Image
           source={
-            tweet.user.avatar_url ? { uri: tweet.user.avatar_url } : require('@/assets/images/avatar-placeholder.png')
+            tweet.user.avatarUrl ? { uri: tweet.user.avatarUrl } : require('@/assets/images/avatar-placeholder.png')
           }
           style={styles.avatar}
           accessibilityLabel="tweet_image_parent_avatar"
@@ -28,7 +42,18 @@ const ParentTweet: React.FC<IParentTweetProps> = (props) => {
       <View style={styles.tweetContent}>
         <Text style={styles.tweetText}>{tweet.content}</Text>
       </View>
-    </View>
+
+      {/* Tweet Media */}
+      {(tweet.images.length > 0 || tweet.videos.length > 0) && (
+        <TweetMedia
+          images={tweet.images}
+          videos={tweet.videos}
+          tweetId={tweet.tweetId}
+          isVisible={isVisible}
+          isParentMedia={true}
+        />
+      )}
+    </Pressable>
   );
 };
 

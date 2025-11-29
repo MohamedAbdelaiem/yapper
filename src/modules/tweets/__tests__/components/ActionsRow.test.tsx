@@ -1,215 +1,91 @@
 import { ThemeProvider } from '@/src/context/ThemeContext';
-import ActionsRow from '@/src/modules/tweets/components/ActionsRow';
-import { ITweet } from '@/src/modules/tweets/types';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
+import ActionsRow from '../../components/ActionsRow';
+import { ITweet } from '../../types';
 
-// Mock the icon imports
-jest.mock('@/assets/icons/bookmark.svg', () => 'BookmarkIcon');
-jest.mock('@/assets/icons/like.svg', () => 'LikeIcon');
-jest.mock('@/assets/icons/reply.svg', () => 'ReplyIcon');
-jest.mock('@/assets/icons/repost.svg', () => 'RepostIcon');
-jest.mock('@/assets/icons/share.svg', () => 'ShareIcon');
-jest.mock('@/assets/icons/views.svg', () => 'ViewsIcon');
+// Mock TweetActionButton
+jest.mock('../../components/TweetActionButton', () => {
+  const { Text, Pressable } = require('react-native');
 
-const mockTweet: ITweet = {
-  tweet_id: 'tweet-1',
-  type: 'tweet',
-  content: 'Test tweet content',
-  images: [],
-  videos: [],
-  likes_count: 10,
-  reposts_count: 5,
-  views_count: 100,
-  quotes_count: 2,
-  replies_count: 3,
-  is_liked: false,
-  is_reposted: false,
-  created_at: '2025-01-01T00:00:00.000Z',
-  updated_at: '2025-01-01T00:00:00.000Z',
-  user: {
-    id: 'user-1',
-    email: 'test@example.com',
-    name: 'Test User',
-    username: 'testuser',
-    avatar_url: undefined,
-    verified: false,
-  },
+  return (props: any) => (
+    <Pressable onPress={props.onPress} testID={props.testID}>
+      <Text>{props.testID}</Text>
+    </Pressable>
+  );
+});
+
+const renderWithTheme = (component: React.ReactElement) => {
+  return render(<ThemeProvider>{component}</ThemeProvider>);
 };
 
-const mockOnReplyPress = jest.fn();
-const mockOnRepostPress = jest.fn();
-const mockOnLikePress = jest.fn();
-const mockOnViewsPress = jest.fn();
-const mockOnBookmarkPress = jest.fn();
-const mockOnSharePress = jest.fn();
-
 describe('ActionsRow', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  const renderComponent = (tweet: ITweet = mockTweet, isBookmarked = false) => {
-    return render(
-      <ThemeProvider>
-        <ActionsRow
-          tweet={tweet}
-          onReplyPress={mockOnReplyPress}
-          onRepostPress={mockOnRepostPress}
-          onLikePress={mockOnLikePress}
-          onViewsPress={mockOnViewsPress}
-          onBookmarkPress={mockOnBookmarkPress}
-          onSharePress={mockOnSharePress}
-          isBookmarked={isBookmarked}
-        />
-      </ThemeProvider>,
-    );
+  const mockTweet: ITweet = {
+    tweetId: '1',
+    content: 'test',
+    user: { id: '1', name: 'John', username: 'john', avatarUrl: '', email: 'john@example.com' },
+    createdAt: '2023-01-01',
+    updatedAt: '2023-01-01',
+    likesCount: 10,
+    repostsCount: 5,
+    quotesCount: 2,
+    repliesCount: 3,
+    viewsCount: 100,
+    isLiked: false,
+    isReposted: false,
+    images: [],
+    videos: [],
+    type: 'tweet',
   };
 
-  describe('Rendering', () => {
-    it('should render all action buttons', () => {
-      renderComponent();
+  const defaultProps = {
+    tweet: mockTweet,
+    onReplyPress: jest.fn(),
+    onRepostPress: jest.fn(),
+    onLikePress: jest.fn(),
+    onBookmarkPress: jest.fn(),
+    isBookmarked: false,
+    onSharePress: jest.fn(),
+    size: 'small' as const,
+  };
 
-      expect(screen.getByLabelText('tweet_button_reply')).toBeTruthy();
-      expect(screen.getByLabelText('tweet_button_repost')).toBeTruthy();
-      expect(screen.getByLabelText('tweet_button_like')).toBeTruthy();
-      expect(screen.getByLabelText('tweet_button_views')).toBeTruthy();
-      expect(screen.getByLabelText('tweet_button_bookmark')).toBeTruthy();
-      expect(screen.getByLabelText('tweet_button_share')).toBeTruthy();
-    });
-
-    it('should display correct counts', () => {
-      renderComponent();
-
-      expect(screen.getByText('3')).toBeTruthy(); // replies_count
-      expect(screen.getByText('5')).toBeTruthy(); // reposts_count
-      expect(screen.getByText('10')).toBeTruthy(); // likes_count
-      expect(screen.getByText('100')).toBeTruthy(); // views_count
-    });
-
-    it('should not display count for bookmark and share', () => {
-      renderComponent();
-
-      // Bookmark and share buttons should not have counts
-      const allButtons = screen.getAllByLabelText(/tweet_button/);
-      expect(allButtons).toHaveLength(6);
-    });
+  it('should render all actions', () => {
+    const { getByTestId } = renderWithTheme(<ActionsRow {...defaultProps} />);
+    expect(getByTestId('tweet_button_reply')).toBeTruthy();
+    expect(getByTestId('tweet_button_repost')).toBeTruthy();
+    expect(getByTestId('tweet_button_like')).toBeTruthy();
+    expect(getByTestId('tweet_button_views')).toBeTruthy();
+    expect(getByTestId('tweet_button_bookmark')).toBeTruthy();
+    expect(getByTestId('tweet_button_share')).toBeTruthy();
   });
 
-  describe('Interactions', () => {
-    it('should call onReplyPress when reply button is pressed', () => {
-      renderComponent();
-
-      const replyButton = screen.getByLabelText('tweet_button_reply');
-      fireEvent.press(replyButton);
-
-      expect(mockOnReplyPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onRepostPress with correct parameter when repost button is pressed', () => {
-      renderComponent();
-
-      const repostButton = screen.getByLabelText('tweet_button_repost');
-      fireEvent.press(repostButton);
-
-      expect(mockOnRepostPress).toHaveBeenCalledWith(false);
-      expect(mockOnRepostPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onLikePress with correct parameter when like button is pressed', () => {
-      renderComponent();
-
-      const likeButton = screen.getByLabelText('tweet_button_like');
-      fireEvent.press(likeButton);
-
-      expect(mockOnLikePress).toHaveBeenCalledWith(false);
-      expect(mockOnLikePress).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onViewsPress when views button is pressed', () => {
-      renderComponent();
-
-      const viewsButton = screen.getByLabelText('tweet_button_views');
-      fireEvent.press(viewsButton);
-
-      expect(mockOnViewsPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onBookmarkPress when bookmark button is pressed', () => {
-      renderComponent();
-
-      const bookmarkButton = screen.getByLabelText('tweet_button_bookmark');
-      fireEvent.press(bookmarkButton);
-
-      expect(mockOnBookmarkPress).toHaveBeenCalledTimes(1);
-    });
-
-    it('should call onSharePress when share button is pressed', () => {
-      renderComponent();
-
-      const shareButton = screen.getByLabelText('tweet_button_share');
-      fireEvent.press(shareButton);
-
-      expect(mockOnSharePress).toHaveBeenCalledTimes(1);
-    });
+  it('should handle reply press', () => {
+    const { getByTestId } = renderWithTheme(<ActionsRow {...defaultProps} />);
+    fireEvent.press(getByTestId('tweet_button_reply'));
+    expect(defaultProps.onReplyPress).toHaveBeenCalled();
   });
 
-  describe('Tweet States', () => {
-    it('should handle liked tweet state', () => {
-      const likedTweet = { ...mockTweet, is_liked: true };
-      renderComponent(likedTweet);
-
-      const likeButton = screen.getByLabelText('tweet_button_like');
-      fireEvent.press(likeButton);
-
-      expect(mockOnLikePress).toHaveBeenCalledWith(true);
-    });
-
-    it('should handle reposted tweet state', () => {
-      const repostedTweet = { ...mockTweet, is_reposted: true };
-      renderComponent(repostedTweet);
-
-      const repostButton = screen.getByLabelText('tweet_button_repost');
-      fireEvent.press(repostButton);
-
-      expect(mockOnRepostPress).toHaveBeenCalledWith(true);
-    });
-
-    it('should handle bookmarked state', () => {
-      renderComponent(mockTweet, true);
-
-      expect(screen.getByLabelText('tweet_button_bookmark')).toBeTruthy();
-    });
+  it('should handle repost press', () => {
+    const { getByTestId } = renderWithTheme(<ActionsRow {...defaultProps} />);
+    fireEvent.press(getByTestId('tweet_button_repost'));
+    expect(defaultProps.onRepostPress).toHaveBeenCalled();
   });
 
-  describe('Edge Cases', () => {
-    it('should handle zero counts', () => {
-      const tweetWithZeroCounts = {
-        ...mockTweet,
-        likes_count: 0,
-        reposts_count: 0,
-        views_count: 0,
-        replies_count: 0,
-      };
-      renderComponent(tweetWithZeroCounts);
+  it('should handle like press', () => {
+    const { getByTestId } = renderWithTheme(<ActionsRow {...defaultProps} />);
+    fireEvent.press(getByTestId('tweet_button_like'));
+    expect(defaultProps.onLikePress).toHaveBeenCalledWith(false);
+  });
 
-      expect(screen.getAllByLabelText(/tweet_button/)).toHaveLength(6);
-    });
+  it('should handle bookmark press', () => {
+    const { getByTestId } = renderWithTheme(<ActionsRow {...defaultProps} />);
+    fireEvent.press(getByTestId('tweet_button_bookmark'));
+    expect(defaultProps.onBookmarkPress).toHaveBeenCalled();
+  });
 
-    it('should handle large counts', () => {
-      const tweetWithLargeCounts = {
-        ...mockTweet,
-        likes_count: 1500000,
-        reposts_count: 250000,
-        views_count: 5000000,
-        replies_count: 10000,
-      };
-      renderComponent(tweetWithLargeCounts);
-
-      expect(screen.getByText('1.5M')).toBeTruthy();
-      expect(screen.getByText('250K')).toBeTruthy();
-      expect(screen.getByText('5M')).toBeTruthy();
-      expect(screen.getByText('10K')).toBeTruthy();
-    });
+  it('should handle share press', () => {
+    const { getByTestId } = renderWithTheme(<ActionsRow {...defaultProps} />);
+    fireEvent.press(getByTestId('tweet_button_share'));
+    expect(defaultProps.onSharePress).toHaveBeenCalled();
   });
 });

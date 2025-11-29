@@ -7,11 +7,17 @@ type Props = {
   title: string;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  testID?: string;
 };
 
-const ActionButton: React.FC<Props> = ({ onPress, title, style, textStyle }) => {
+const ActionButton: React.FC<Props> = ({ onPress, title, style, textStyle, testID }) => {
   return (
-    <TouchableOpacity style={[styles.btn, style]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.btn, style]}
+      onPress={onPress}
+      testID={testID}
+      accessibilityLabel={testID || `action_button_${title.toLowerCase().replace(/\s+/g, '_')}`}
+    >
       <Text style={[styles.text, textStyle]}>{title}</Text>
     </TouchableOpacity>
   );
