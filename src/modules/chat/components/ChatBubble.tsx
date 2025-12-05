@@ -1,23 +1,25 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
-import { ChatMessage } from '@/src/modules/chat/types';
+import { IChatMessageItem } from '@/src/modules/chat/types';
+import { formatMessageTime } from '@/src/modules/chat/utils/formatters';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 interface ChatBubbleProps {
-  message: ChatMessage;
+  message: IChatMessageItem;
+  isOwn: boolean;
 }
 
-export default function ChatBubble({ message }: ChatBubbleProps) {
+export default function ChatBubble({ message, isOwn }: ChatBubbleProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
   return (
-    <View style={[styles.container, message.isOwn ? styles.ownContainer : styles.otherContainer]}>
-      <View style={[styles.bubble, message.isOwn ? styles.ownBubble : styles.otherBubble]}>
-        <Text style={[styles.text, message.isOwn ? styles.ownText : styles.otherText]}>{message.text}</Text>
+    <View style={[styles.container, isOwn ? styles.ownContainer : styles.otherContainer]}>
+      <View style={[styles.bubble, isOwn ? styles.ownBubble : styles.otherBubble]}>
+        <Text style={[styles.text, isOwn ? styles.ownText : styles.otherText]}>{message.content}</Text>
       </View>
-      <Text style={styles.timestamp}>{message.timestamp}</Text>
+      <Text style={styles.timestamp}>{formatMessageTime(message.createdAt)}</Text>
     </View>
   );
 }

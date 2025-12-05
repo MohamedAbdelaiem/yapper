@@ -1,40 +1,56 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
+import { formatRelativeTime } from '@/src/modules/chat/utils/formatters';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { IChat } from '../types';
 
 interface MessageItemProps {
-  name: string;
-  username: string;
-  lastMessage: string;
-  timestamp: string;
-  unread: boolean;
+  chat: IChat;
   onPress?: () => void;
 }
 
-export default function MessageItem({ name, username, lastMessage, timestamp, unread, onPress }: MessageItemProps) {
+export default function MessageItem({ chat, onPress }: MessageItemProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
-
+  const { participant, lastMessage, unreadCount } = chat;
+  const hasUnread = unreadCount > 0;
+  const timestamp = lastMessage?.createdAt;
   return (
     <TouchableOpacity style={styles.messageItem} onPress={onPress}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{name.charAt(0)}</Text>
-      </View>
+      {participant.avatarUrl ? (
+        <Image source={{ uri: participant.avatarUrl }} style={styles.avatar} />
+      ) : (
+        <View style={[styles.avatar, styles.avatarPlaceholder]}>
+          <Text style={styles.avatarText}>{participant.name?.charAt(0) || participant.username.charAt(0)}</Text>
+        </View>
+      )}
       <View style={styles.messageContent}>
         <View style={styles.messageHeader}>
-          <Text style={styles.messageName}>{name}</Text>
-          <Text style={styles.messageTime}>{timestamp}</Text>
+          <View style={styles.nameRow}>
+            <Text style={styles.messageName} numberOfLines={1}>
+              {participant.name || participant.username}
+            </Text>
+            <Text style={styles.messageUsername} numberOfLines={1}>
+              @{participant.username}
+            </Text>
+            {timestamp && (
+              <>
+                <Text style={styles.dotSeparator}>·</Text>
+                <Text style={styles.messageTime}>{formatRelativeTime(timestamp)}</Text>
+              </>
+            )}
+          </View>
+          {hasUnread && <View style={styles.unreadDot} />}
         </View>
-        <View style={styles.messageTextRow}>
-          <Text style={styles.messageUsername}>@{username}</Text>
-          <Text style={styles.messageDot}>·</Text>
-          <Text style={[styles.messagePreview, unread && styles.messagePreviewUnread]} numberOfLines={1}>
-            {lastMessage}
+        {lastMessage ? (
+          <Text style={[styles.messagePreview, hasUnread && styles.messagePreviewUnread]} numberOfLines={1}>
+            {lastMessage.content}
           </Text>
-        </View>
+        ) : (
+          <Text style={styles.noMessages}>No messages yet</Text>
+        )}
       </View>
-      {unread && <View style={styles.unreadDot} />}
     </TouchableOpacity>
   );
 }
@@ -50,10 +66,12 @@ const createStyles = (theme: Theme) =>
       width: 48,
       height: 48,
       borderRadius: 24,
+      marginRight: theme.spacing.md,
+    },
+    avatarPlaceholder: {
       backgroundColor: theme.colors.accent.bookmark,
       justifyContent: 'center',
       alignItems: 'center',
-      marginRight: theme.spacing.md,
     },
     avatarText: {
       fontSize: theme.typography.sizes.lg,
@@ -69,30 +87,35 @@ const createStyles = (theme: Theme) =>
       alignItems: 'center',
       marginBottom: theme.spacing.xxs,
     },
+    nameRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+      gap: theme.spacing.xs,
+      overflow: 'hidden',
+    },
     messageName: {
       fontSize: theme.typography.sizes.md,
       fontFamily: theme.typography.fonts.bold,
       color: theme.colors.text.primary,
-    },
-    messageTime: {
-      fontSize: theme.typography.sizes.sm,
-      color: theme.colors.text.secondary,
-    },
-    messageTextRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: theme.spacing.xs,
+      flexShrink: 1,
     },
     messageUsername: {
       fontSize: theme.typography.sizes.sm,
       color: theme.colors.text.secondary,
+      flexShrink: 2,
     },
-    messageDot: {
+    dotSeparator: {
       fontSize: theme.typography.sizes.sm,
       color: theme.colors.text.secondary,
+      flexShrink: 0,
+    },
+    messageTime: {
+      fontSize: theme.typography.sizes.sm,
+      color: theme.colors.text.secondary,
+      flexShrink: 0,
     },
     messagePreview: {
-      flex: 1,
       fontSize: theme.typography.sizes.sm,
       color: theme.colors.text.secondary,
     },
@@ -100,11 +123,16 @@ const createStyles = (theme: Theme) =>
       color: theme.colors.text.primary,
       fontFamily: theme.typography.fonts.medium,
     },
+    noMessages: {
+      fontSize: theme.typography.sizes.sm,
+      color: theme.colors.text.secondary,
+      fontStyle: 'italic',
+    },
     unreadDot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
+      width: 10,
+      height: 10,
+      borderRadius: 5,
       backgroundColor: theme.colors.accent.bookmark,
-      marginTop: theme.spacing.xs,
+      marginLeft: theme.spacing.xs,
     },
   });

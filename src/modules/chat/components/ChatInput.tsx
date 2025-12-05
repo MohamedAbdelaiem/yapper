@@ -9,6 +9,7 @@ interface ChatInputProps {
   onChangeText: (text: string) => void;
   onSend: () => void;
   placeholder?: string;
+  style?: any;
 }
 
 export default function ChatInput({
@@ -16,6 +17,7 @@ export default function ChatInput({
   onChangeText,
   onSend,
   placeholder = 'Start a new message',
+  style,
 }: ChatInputProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -27,7 +29,7 @@ export default function ChatInput({
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, style]}>
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
@@ -55,7 +57,7 @@ const createStyles = (theme: Theme) =>
     container: {
       flexDirection: 'row',
       alignItems: 'flex-end',
-      padding: theme.spacing.md,
+      padding: theme.spacing.lg,
       borderTopWidth: 1,
       borderTopColor: theme.colors.border,
       backgroundColor: theme.colors.background.primary,

@@ -2,16 +2,17 @@ import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
 import { ArrowLeft, Info } from 'lucide-react-native';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ChatHeaderProps {
   name: string;
   username: string;
+  avatarUrl?: string;
   onBack: () => void;
   onInfo?: () => void;
 }
 
-export default function ChatHeader({ name, username, onBack, onInfo }: ChatHeaderProps) {
+export default function ChatHeader({ name, username, avatarUrl, onBack, onInfo }: ChatHeaderProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
 
@@ -21,12 +22,20 @@ export default function ChatHeader({ name, username, onBack, onInfo }: ChatHeade
         <ArrowLeft color={theme.colors.text.primary} size={24} />
       </TouchableOpacity>
       <View style={styles.userInfo}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>{name.charAt(0)}</Text>
-        </View>
+        {avatarUrl ? (
+          <Image source={{ uri: avatarUrl }} style={styles.avatar} />
+        ) : (
+          <View style={[styles.avatar, styles.avatarPlaceholder]}>
+            <Text style={styles.avatarText}>{name.charAt(0)}</Text>
+          </View>
+        )}
         <View style={styles.textInfo}>
-          <Text style={styles.name}>{name}</Text>
-          <Text style={styles.username}>@{username}</Text>
+          <Text style={styles.name} numberOfLines={1}>
+            {name}
+          </Text>
+          <Text style={styles.username} numberOfLines={1}>
+            @{username}
+          </Text>
         </View>
       </View>
       {onInfo && (
@@ -63,6 +72,8 @@ const createStyles = (theme: Theme) =>
       width: 40,
       height: 40,
       borderRadius: 20,
+    },
+    avatarPlaceholder: {
       backgroundColor: theme.colors.accent.bookmark,
       justifyContent: 'center',
       alignItems: 'center',
