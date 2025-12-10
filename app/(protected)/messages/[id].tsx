@@ -50,6 +50,8 @@ export default function ChatConversationPage() {
     handleLoadMore,
     handleReplyToMessage,
     handleCancelReply,
+    handleReactToMessage,
+    handleRemoveReactToMessage,
   } = useChatConversation({ chatId: chatId as string });
 
   const inputLengthOnKeyboardOpen = useRef<number>(0);
@@ -124,6 +126,8 @@ export default function ChatConversationPage() {
             hasMore={hasNextPage}
             isOtherUserTyping={isOtherUserTyping}
             onReplyToMessage={handleReplyToMessage}
+            onReactToMessage={handleReactToMessage}
+            onRemoveReactToMessage={handleRemoveReactToMessage}
             replyingTo={replyingTo}
           />
         )}

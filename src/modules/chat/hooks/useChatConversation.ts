@@ -1,9 +1,17 @@
 import { useAuthStore } from '@/src/store/useAuthStore';
+import { useUnreadMessagesStore } from '@/src/store/useUnreadMessagesStore';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Keyboard, Platform } from 'react-native';
 import { getMessages } from '../services/chatService';
-import { chatSocketService, IMessageSentData, INewMessageData, IUserTypingData } from '../services/chatSocketService';
+import {
+  chatSocketService,
+  IMessageSentData,
+  INewMessageData,
+  IReactionAddedData,
+  IReactionRemovedData,
+  IUserTypingData,
+} from '../services/chatSocketService';
 import { IChatMessageItem, IChatMessageSender, IReplyContext } from '../types';
 
 const MESSAGES_PER_PAGE = 50;
@@ -35,10 +43,12 @@ interface UseChatConversationReturn {
 
   // Actions
   handleTextChange: (text: string) => void;
-  handleSend: () => void;
+  handleSend: (imageUrl?: string | null) => void;
   handleLoadMore: () => void;
   handleReplyToMessage: (message: IChatMessageItem, senderName: string) => void;
   handleCancelReply: () => void;
+  handleReactToMessage: (messageId: string, emoji: string) => void;
+  handleRemoveReactToMessage: (messageId: string, emoji: string) => void;
 }
 
 export function useChatConversation({ chatId }: UseChatConversationOptions): UseChatConversationReturn {
@@ -68,7 +78,6 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
     enabled: !!chatId,
   });
 
-  // Flatten messages from all pages and get sender info
   const { messages, sender } = useMemo(() => {
     if (!messagesData?.pages.length) {
       return { messages: [], sender: null };
@@ -78,16 +87,37 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
     const allMessages = reversedPages.flatMap((page) => page.messages);
     return { messages: allMessages, sender: senderInfo };
   }, [messagesData]);
-  // Join chat room on mount, leave on unmount
+
+  const removeUnreadChat = useUnreadMessagesStore((state) => state.removeUnreadChat);
+  const setActiveChatId = useUnreadMessagesStore((state) => state.setActiveChatId);
+
   useEffect(() => {
     if (!chatId) return;
+    setActiveChatId(chatId);
+    removeUnreadChat(chatId);
+    const chatsData = queryClient.getQueryData<{ pages: Array<{ chats: Array<{ id: string; unreadCount: number }> }> }>(
+      ['chats'],
+    );
+    if (chatsData?.pages) {
+      queryClient.setQueryData(['chats'], (oldData: typeof chatsData) => {
+        if (!oldData?.pages) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((p) => ({
+            ...p,
+            chats: p.chats.map((c) => (c.id === chatId ? { ...c, unreadCount: 0 } : c)),
+          })),
+        };
+      });
+    }
 
     chatSocketService.joinChat(chatId);
 
     return () => {
       chatSocketService.leaveChat(chatId);
+      setActiveChatId(null); // Clear active chat when leaving
     };
-  }, [chatId]);
+  }, [chatId, removeUnreadChat, setActiveChatId, queryClient]);
 
   // Handle new incoming messages
   const handleNewMessage = useCallback(
@@ -112,6 +142,7 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
         messageType: data.message.message_type,
         replyTo: data.message.reply_to_message_id || null,
         replyToMessage,
+        imageUrl: data.message.image_url || null,
         isRead: data.message.is_read,
         createdAt: data.message.created_at,
         updatedAt: data.message.updated_at || data.message.created_at,
@@ -121,14 +152,10 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
       // Add the new message to the cache (check for duplicates first)
       queryClient.setQueryData(['messages', chatId], (oldData: typeof messagesData) => {
         if (!oldData?.pages?.length) return oldData;
-
-        // Check if message already exists to prevent duplicates
         const allMessages = oldData.pages.flatMap((page) => page.messages);
         if (allMessages.some((msg) => msg.id === newMessage.id)) {
           return oldData;
         }
-
-        // Add message to the first page (newest messages - pages are in reverse chronological order)
         const newPages = [...oldData.pages];
         newPages[0] = {
           ...newPages[0],
@@ -140,8 +167,6 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
           pages: newPages,
         };
       });
-
-      // Also invalidate chats list to update last message
       queryClient.invalidateQueries({ queryKey: ['chats'] });
     },
     [chatId, queryClient, messagesData, currentUser?.id],
@@ -170,23 +195,19 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
         messageType: (data.message_type || 'text') as IChatMessageItem['messageType'],
         replyTo: data.reply_to_message_id || null,
         replyToMessage,
+        imageUrl: data.image_url || null,
         isRead: data.is_read,
         createdAt: data.created_at,
         updatedAt: data.updated_at || data.created_at,
-        senderId: data.sender_id, // This is our user's ID
+        senderId: data.sender_id,
       };
 
-      // Add the sent message to the cache (check for duplicates first)
       queryClient.setQueryData(['messages', chatId], (oldData: typeof messagesData) => {
         if (!oldData?.pages?.length) return oldData;
-
-        // Check if message already exists to prevent duplicates
         const allMessages = oldData.pages.flatMap((page) => page.messages);
         if (allMessages.some((msg) => msg.id === newMessage.id)) {
           return oldData;
         }
-
-        // Add message to the first page (newest messages - pages are in reverse chronological order)
         const newPages = [...oldData.pages];
         newPages[0] = {
           ...newPages[0],
@@ -198,14 +219,10 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
           pages: newPages,
         };
       });
-
-      // Also invalidate chats list to update last message
       queryClient.invalidateQueries({ queryKey: ['chats'] });
     },
     [chatId, queryClient, messagesData],
   );
-
-  // Handle typing indicators
   const handleUserTyping = useCallback(
     (data: IUserTypingData) => {
       if (data.chat_id === chatId && data.user_id !== currentUser?.id) {
@@ -224,25 +241,139 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
     [chatId, currentUser?.id],
   );
 
+  // Handle reaction added
+  const handleReactionAdded = useCallback(
+    (data: IReactionAddedData) => {
+      // Validate data completness
+      if (!data || !data.chat_id || !data.message_id || !data.emoji || !data.user_id) return;
+      if (data.chat_id !== chatId) return;
+
+      const isFromCurrentUser = data.user_id === currentUser?.id;
+
+      queryClient.setQueryData(['messages', chatId], (oldData: typeof messagesData) => {
+        if (!oldData?.pages?.length) return oldData;
+
+        const newPages = oldData.pages.map((page) => ({
+          ...page,
+          messages: page.messages.map((msg) => {
+            if (msg.id !== data.message_id) return msg;
+
+            // Strictly follow server events. Do not try to auto-remove old reactions here,
+            // as the server sends explicit 'reaction_removed' events for replacements.
+            let existingReactions = msg.reactions || [];
+
+            // If this is a new reaction from the current user, enforce uniqueness locally
+            // by removing any previous reaction from them (UI enforcement as requested)
+            if (isFromCurrentUser) {
+              existingReactions = existingReactions
+                .map((r) => {
+                  if (r.reactedByMe && r.emoji !== data.emoji) {
+                    return { ...r, count: r.count - 1, reactedByMe: false };
+                  }
+                  return r;
+                })
+                .filter((r) => r.count > 0);
+            } else {
+              // For other user (assuming 1-on-1 chat logic where there is only one "other"),
+              // remove their previous reaction if they switch emoji.
+              // We assume 'other user' is present if count > 1 (shared) OR !reactedByMe (only them).
+              existingReactions = existingReactions
+                .map((r) => {
+                  if ((r.count > 1 || !r.reactedByMe) && r.emoji !== data.emoji) {
+                    return { ...r, count: r.count - 1 };
+                  }
+                  return r;
+                })
+                .filter((r) => r.count > 0);
+            }
+
+            // Check if this emoji already exists
+            const existingIdx = existingReactions.findIndex((r) => r.emoji === data.emoji);
+
+            let updatedReactions = existingReactions;
+            if (existingIdx >= 0) {
+              // Cap at max 2 for 1-on-1 chats
+              updatedReactions = updatedReactions.map((r, i) =>
+                i === existingIdx
+                  ? { ...r, count: Math.min(r.count + 1, 2), reactedByMe: r.reactedByMe || isFromCurrentUser }
+                  : r,
+              );
+            } else {
+              updatedReactions = [...updatedReactions, { emoji: data.emoji, count: 1, reactedByMe: isFromCurrentUser }];
+            }
+            return { ...msg, reactions: updatedReactions };
+          }),
+        }));
+
+        return { ...oldData, pages: newPages };
+      });
+    },
+    [chatId, queryClient, currentUser?.id],
+  );
+
+  // Handle reaction removed
+  const handleReactionRemoved = useCallback(
+    (data: IReactionRemovedData) => {
+      // Validate data completness - strict check to ignore "Reaction removed successfully" messages
+      if (!data || !data.chat_id || !data.message_id || !data.emoji || !data.user_id) return;
+      if (data.chat_id !== chatId) return;
+
+      const isFromCurrentUser = data.user_id === currentUser?.id;
+
+      queryClient.setQueryData(['messages', chatId], (oldData: typeof messagesData) => {
+        if (!oldData?.pages?.length) return oldData;
+
+        const newPages = oldData.pages.map((page) => ({
+          ...page,
+          messages: page.messages.map((msg) => {
+            if (msg.id !== data.message_id) return msg;
+
+            const updatedReactions = (msg.reactions || [])
+              .map((r) =>
+                r.emoji === data.emoji
+                  ? { ...r, count: Math.max(0, r.count - 1), reactedByMe: isFromCurrentUser ? false : r.reactedByMe }
+                  : r,
+              )
+              .filter((r) => r.count > 0);
+
+            return { ...msg, reactions: updatedReactions };
+          }),
+        }));
+
+        return { ...oldData, pages: newPages };
+      });
+    },
+    [chatId, queryClient, currentUser?.id],
+  );
+
   // Set up socket listeners
   useEffect(() => {
     chatSocketService.onNewMessage(handleNewMessage);
     chatSocketService.onMessageSent(handleMessageSent);
     chatSocketService.onUserTyping(handleUserTyping);
     chatSocketService.onUserStoppedTyping(handleUserStoppedTyping);
+    chatSocketService.onReactionAdded(handleReactionAdded);
+    chatSocketService.onReactionRemoved(handleReactionRemoved);
 
     return () => {
       chatSocketService.offNewMessage(handleNewMessage);
       chatSocketService.offMessageSent(handleMessageSent);
       chatSocketService.offUserTyping(handleUserTyping);
       chatSocketService.offUserStoppedTyping(handleUserStoppedTyping);
+      chatSocketService.offReactionAdded(handleReactionAdded);
+      chatSocketService.offReactionRemoved(handleReactionRemoved);
     };
-  }, [handleNewMessage, handleMessageSent, handleUserTyping, handleUserStoppedTyping]);
+  }, [
+    handleNewMessage,
+    handleMessageSent,
+    handleUserTyping,
+    handleUserStoppedTyping,
+    handleReactionAdded,
+    handleReactionRemoved,
+  ]);
 
-  // Keyboard listeners - use ref to prevent rapid state changes on Android
   useEffect(() => {
     let isCurrentlyVisible = false;
-
     const keyboardWillShowListener = Keyboard.addListener(
       Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e) => {
@@ -270,7 +401,6 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
     };
   }, []);
 
-  // Handle text input changes with typing indicator
   const handleTextChange = useCallback(
     (text: string) => {
       setInputText(text);
@@ -286,14 +416,16 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
     [chatId, isTyping],
   );
 
-  // Handle sending a message
-  const handleSend = useCallback(() => {
-    if (inputText.trim() && chatId) {
+  const handleSend = useCallback(
+    (imageUrl?: string | null) => {
+      if ((!inputText.trim() && !imageUrl) || !chatId) return;
+
       const content = inputText.trim();
       const messageType = replyingTo ? 'reply' : 'text';
       const replyToId = replyingTo?.messageId || null;
+      const isFirstMessage = messages.length === 0;
 
-      chatSocketService.sendMessage(chatId, content, messageType, replyToId);
+      chatSocketService.sendMessage(chatId, content, messageType, replyToId, imageUrl || null, isFirstMessage);
 
       if (isTyping) {
         setIsTyping(false);
@@ -302,8 +434,9 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
 
       setInputText('');
       setReplyingTo(null);
-    }
-  }, [chatId, inputText, isTyping, replyingTo]);
+    },
+    [chatId, inputText, isTyping, replyingTo, messages.length],
+  );
 
   // Handle reply to message
   const handleReplyToMessage = useCallback((message: IChatMessageItem, senderName: string) => {
@@ -311,6 +444,7 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
       messageId: message.id,
       content: message.content,
       senderName,
+      hasImage: !!message.imageUrl || message.messageType === 'image',
     });
   }, []);
 
@@ -325,6 +459,24 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
       fetchNextPage();
     }
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  // Handle react to message
+  const handleReactToMessage = useCallback(
+    (messageId: string, emoji: string) => {
+      if (!chatId) return;
+      chatSocketService.addReaction(chatId, messageId, emoji);
+    },
+    [chatId],
+  );
+
+  // Handle remove reaction from message
+  const handleRemoveReactToMessage = useCallback(
+    (messageId: string, emoji: string) => {
+      if (!chatId) return;
+      chatSocketService.removeReaction(chatId, messageId, emoji);
+    },
+    [chatId],
+  );
 
   return {
     messages,
@@ -344,5 +496,7 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
     handleLoadMore,
     handleReplyToMessage,
     handleCancelReply,
+    handleReactToMessage,
+    handleRemoveReactToMessage,
   };
 }

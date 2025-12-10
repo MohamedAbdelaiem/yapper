@@ -16,6 +16,8 @@ interface ChatMessagesListProps {
   hasMore?: boolean;
   isOtherUserTyping?: boolean;
   onReplyToMessage?: (message: IChatMessageItem, senderName: string) => void;
+  onReactToMessage?: (messageId: string, emoji: string) => void;
+  onRemoveReactToMessage?: (messageId: string, emoji: string) => void;
   replyingTo?: IReplyContext | null;
 }
 
@@ -28,6 +30,8 @@ export default function ChatMessagesList({
   hasMore,
   isOtherUserTyping,
   onReplyToMessage,
+  onReactToMessage,
+  onRemoveReactToMessage,
   replyingTo,
 }: ChatMessagesListProps) {
   const { theme } = useTheme();
@@ -108,10 +112,12 @@ export default function ChatMessagesList({
           replyMessage={replyMessage}
           replyMessageSenderName={getReplyMessageSenderName()}
           onReply={() => onReplyToMessage?.(item, getSenderName())}
+          onReact={onReactToMessage}
+          onRemoveReact={onRemoveReactToMessage}
         />
       );
     },
-    [currentUserId, messagesMap, sender, onReplyToMessage],
+    [currentUserId, messagesMap, sender, onReplyToMessage, onReactToMessage, onRemoveReactToMessage],
   );
 
   const renderHeader = () => {

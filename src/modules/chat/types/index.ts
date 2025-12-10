@@ -64,6 +64,13 @@ export interface IChatMessageSender {
   avatarUrl: string | null;
 }
 
+// Message reaction type
+export interface IMessageReaction {
+  emoji: string;
+  count: number;
+  reactedByMe: boolean;
+}
+
 export interface IChatMessageItem {
   id: string;
   content: string;
@@ -74,6 +81,8 @@ export interface IChatMessageItem {
     content: string;
     senderId: string;
   } | null;
+  imageUrl?: string | null;
+  reactions?: IMessageReaction[];
   isRead: boolean;
   createdAt: string;
   updatedAt: string;
@@ -85,6 +94,7 @@ export interface IReplyContext {
   messageId: string;
   content: string;
   senderName: string;
+  hasImage?: boolean;
 }
 
 export interface IChatMessagesData {
@@ -99,5 +109,57 @@ export interface IGetMessagesResponse {
     pagination: IChatPagination;
   };
   count: number;
+  message: string;
+}
+
+// User Search types
+export interface IUserSearchResult {
+  userId: string;
+  name: string;
+  username: string;
+  bio: string | null;
+  avatarUrl: string | null;
+  coverUrl: string | null;
+  verified: boolean;
+  followers: number;
+  following: number;
+  isFollowing: boolean;
+  isFollower: boolean;
+  isMuted: boolean;
+  isBlocked: boolean;
+}
+
+export interface IUserSearchPagination {
+  nextCursor: string | null;
+  hasMore: boolean;
+}
+
+export interface IUserSearchResponse {
+  data: {
+    data: IUserSearchResult[];
+    pagination: IUserSearchPagination;
+  };
+  count: number;
+  message: string;
+}
+
+// Create Chat types
+export interface ICreateChatParticipant {
+  id: string;
+  username: string;
+  name: string;
+  avatarUrl: string | null;
+}
+
+export interface ICreateChatData {
+  id: string;
+  participants: ICreateChatParticipant[];
+  createdAt: string;
+  updatedAt: string;
+  lastMessage: ILastMessage | null;
+}
+
+export interface ICreateChatResponse {
+  data: ICreateChatData;
   message: string;
 }

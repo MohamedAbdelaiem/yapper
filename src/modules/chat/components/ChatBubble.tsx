@@ -2,8 +2,10 @@ import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
 import { IChatMessageItem } from '@/src/modules/chat/types';
 import { formatMessageTime } from '@/src/modules/chat/utils/formatters';
-import React, { useRef } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image as ImageIcon } from 'lucide-react-native';
+import React, { useMemo, useRef, useState } from 'react';
+import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import ReactionPicker from './ReactionPicker';
 
 interface ChatBubbleProps {
   message: IChatMessageItem;
@@ -11,12 +13,31 @@ interface ChatBubbleProps {
   replyMessage?: IChatMessageItem | null;
   replyMessageSenderName?: string;
   onReply?: () => void;
+  onReact?: (messageId: string, emoji: string) => void;
+  onRemoveReact?: (messageId: string, emoji: string) => void;
 }
 
-export default function ChatBubble({ message, isOwn, replyMessage, replyMessageSenderName, onReply }: ChatBubbleProps) {
+export default function ChatBubble({
+  message,
+  isOwn,
+  replyMessage,
+  replyMessageSenderName,
+  onReply,
+  onReact,
+  onRemoveReact,
+}: ChatBubbleProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const lastTapRef = useRef<number>(0);
+  const bubbleRef = useRef<View>(null);
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [touchY, setTouchY] = useState(0);
+
+  // Find current user's reaction (using reactedByMe from API)
+  const userReaction = useMemo(() => {
+    if (!message.reactions) return null;
+    return message.reactions.find((r) => r.reactedByMe);
+  }, [message.reactions]);
 
   const handleDoubleTap = () => {
     const now = Date.now();
@@ -30,27 +51,110 @@ export default function ChatBubble({ message, isOwn, replyMessage, replyMessageS
     }
   };
 
+  const handleLongPress = (event: any) => {
+    // Get absolute Y position of the touch
+    const y = event.nativeEvent.pageY;
+    setTouchY(y);
+    setShowReactionPicker(true);
+  };
+
+  const handleReactionSelect = (emoji: string) => {
+    // If user already has this reaction, remove it; otherwise add it
+    if (userReaction?.emoji === emoji) {
+      onRemoveReact?.(message.id, emoji);
+    } else {
+      onReact?.(message.id, emoji);
+    }
+  };
+
+  const handleReactionBadgePress = (emoji: string, reactedByMe: boolean) => {
+    // If it's the user's reaction, remove it; otherwise add this reaction
+    if (reactedByMe) {
+      onRemoveReact?.(message.id, emoji);
+    } else {
+      onReact?.(message.id, emoji);
+    }
+  };
+
+  const hasImage = !!message.imageUrl;
+  const hasText = !!message.content?.trim();
+
   return (
     <View style={[styles.container, isOwn ? styles.ownContainer : styles.otherContainer]}>
-      {/* Reply preview - shows above the bubble */}
       {replyMessage && (
         <View style={[styles.replyPreview, isOwn ? styles.ownReplyPreview : styles.otherReplyPreview]}>
           <Text style={[styles.replyName, isOwn ? styles.ownReplyName : styles.otherReplyName]} numberOfLines={1}>
             {replyMessageSenderName || 'Unknown'}
           </Text>
-          <Text style={[styles.replyText, isOwn ? styles.ownReplyText : styles.otherReplyText]} numberOfLines={2}>
-            {replyMessage.content}
-          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            {!!replyMessage.imageUrl && (
+              <ImageIcon size={12} color={isOwn ? theme.colors.text.secondary : theme.colors.text.secondary} />
+            )}
+            <Text
+              style={[
+                styles.replyText,
+                isOwn ? styles.ownReplyText : styles.otherReplyText,
+                hasImage && styles.imageCaption,
+                { paddingEnd: replyMessage.imageUrl ? theme.spacing.md : 0 },
+              ]}
+              numberOfLines={2}
+            >
+              {!!replyMessage.imageUrl && !replyMessage.content ? 'Photo' : replyMessage.content}
+            </Text>
+          </View>
         </View>
       )}
       <TouchableOpacity
-        style={[styles.bubble, isOwn ? styles.ownBubble : styles.otherBubble]}
+        ref={bubbleRef}
+        style={[
+          styles.bubble,
+          isOwn ? styles.ownBubble : styles.otherBubble,
+          hasImage && styles.imageBubble,
+          hasImage && hasText && styles.imageWithTextBubble,
+        ]}
         onPress={handleDoubleTap}
+        onLongPress={handleLongPress}
+        delayLongPress={400}
         activeOpacity={0.8}
       >
-        <Text style={[styles.text, isOwn ? styles.ownText : styles.otherText]}>{message.content}</Text>
+        {hasImage && (
+          <Image
+            source={{ uri: message.imageUrl! }}
+            style={[styles.messageImage, hasText && { borderRadius: theme.borderRadius.lg }]}
+            resizeMode="cover"
+          />
+        )}
+        {hasText && (
+          <Text style={[styles.text, isOwn ? styles.ownText : styles.otherText, hasImage && styles.imageCaption]}>
+            {message.content}
+          </Text>
+        )}
       </TouchableOpacity>
+      {message.reactions && message.reactions.length > 0 && (
+        <View style={[styles.reactionsContainer, isOwn ? styles.ownReactions : styles.otherReactions]}>
+          {message.reactions.map(({ emoji, count, reactedByMe }) => (
+            <Pressable
+              key={emoji}
+              style={[styles.reactionBadge, reactedByMe && styles.userReactionBadge]}
+              onPress={() => handleReactionBadgePress(emoji, reactedByMe)}
+            >
+              <Text style={styles.reactionEmoji}>{emoji}</Text>
+              {count > 1 && <Text style={styles.reactionCount}>{count}</Text>}
+            </Pressable>
+          ))}
+        </View>
+      )}
       <Text style={styles.timestamp}>{formatMessageTime(message.createdAt)}</Text>
+
+      {/* WhatsApp-style reaction picker modal */}
+      <ReactionPicker
+        visible={showReactionPicker}
+        onClose={() => setShowReactionPicker(false)}
+        onReactionSelect={handleReactionSelect}
+        selectedEmoji={userReaction?.emoji}
+        isOwnMessage={isOwn}
+        touchY={touchY}
+      />
     </View>
   );
 }
@@ -130,5 +234,60 @@ const createStyles = (theme: Theme) =>
     },
     otherReplyText: {
       color: theme.colors.text.secondary,
+    },
+    imageBubble: {
+      padding: 0,
+      paddingHorizontal: 0,
+      paddingVertical: 0,
+      overflow: 'hidden',
+      width: 250,
+    },
+    imageWithTextBubble: {
+      padding: 4,
+      paddingHorizontal: 4,
+      paddingVertical: 4,
+    },
+    messageImage: {
+      width: '100%',
+      height: 200,
+      backgroundColor: theme.colors.background.tertiary, // Placeholder color
+    },
+    imageCaption: {
+      paddingHorizontal: theme.spacing.xs,
+      paddingVertical: theme.spacing.sm,
+    },
+    reactionsContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      marginTop: theme.spacing.xxs,
+      gap: theme.spacing.xxs,
+    },
+    ownReactions: {
+      justifyContent: 'flex-end',
+    },
+    otherReactions: {
+      justifyContent: 'flex-start',
+    },
+    reactionBadge: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: theme.colors.background.secondary,
+      paddingHorizontal: theme.spacing.xs,
+      paddingVertical: 2,
+      borderRadius: theme.borderRadius.full,
+      borderWidth: 1,
+      borderColor: theme.colors.border,
+    },
+    userReactionBadge: {
+      backgroundColor: theme.colors.accent.bookmark + '20',
+      borderColor: theme.colors.accent.bookmark,
+    },
+    reactionEmoji: {
+      fontSize: 14,
+    },
+    reactionCount: {
+      fontSize: theme.typography.sizes.xs,
+      color: theme.colors.text.secondary,
+      marginLeft: 2,
     },
   });

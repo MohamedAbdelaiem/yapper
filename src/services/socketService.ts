@@ -29,7 +29,7 @@ class SocketService {
       this.socket.disconnect();
     }
 
-    this.socket = io(`${SOCKET_URL}/messages`, {
+    this.socket = io(SOCKET_URL, {
       path: SOCKET_PATH,
       autoConnect: true,
       transports: ['websocket', 'polling'],

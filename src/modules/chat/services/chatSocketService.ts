@@ -23,6 +23,7 @@ export interface IChatSocketMessage {
   message_type: MessageType;
   reply_to?: string | null;
   reply_to_message_id?: string | null;
+  image_url?: string | null;
   is_read: boolean;
   is_edited?: boolean;
   created_at: string;
@@ -48,6 +49,8 @@ export interface ISendMessagePayload {
     content: string;
     message_type: MessageType;
     reply_to_message_id: string | null;
+    image_url: string | null;
+    is_first_message: boolean;
   };
 }
 
@@ -57,6 +60,12 @@ export interface IUpdateMessagePayload {
   update: {
     content: string;
   };
+}
+
+export interface IReactToMessagePayload {
+  chat_id: string;
+  message_id: string;
+  emoji: string;
 }
 
 export interface IDeleteMessagePayload {
@@ -96,6 +105,7 @@ export interface IMessageSentData {
   message_type: string;
   reply_to?: string | null;
   reply_to_message_id?: string | null;
+  image_url?: string | null;
   is_read: boolean;
   created_at: string;
   updated_at?: string;
@@ -131,22 +141,42 @@ export interface IMessagesRetrievedData {
 }
 
 export interface IUnreadChatsSummary {
-  totalUnread: number;
   chats: Array<{
-    chatId: string;
-    unreadCount: number;
+    chat_id: string;
+    unread_count: number;
+    last_message?: {
+      id: string;
+      content: string;
+      created_at: string;
+    };
   }>;
+  message: string;
 }
 
 export interface ISocketError {
   message: string;
 }
 
+export interface IReactionAddedData {
+  chat_id: string;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+  created_at: string;
+}
+
+export interface IReactionRemovedData {
+  chat_id: string;
+  message_id: string;
+  user_id: string;
+  emoji: string;
+}
+
 // ============================================================================
 // Event Names
 // ============================================================================
 
-// Client → Server events
+// Client -> Server events
 export const ChatSocketEvents = {
   // Emit events
   JOIN_CHAT: 'join_chat',
@@ -157,6 +187,8 @@ export const ChatSocketEvents = {
   TYPING_START: 'typing_start',
   TYPING_STOP: 'typing_stop',
   GET_MESSAGES: 'get_messages',
+  ADD_REACTION: 'add_reaction',
+  REMOVE_REACTION: 'remove_reaction',
 
   // Listen events
   JOINED_CHAT: 'joined_chat',
@@ -169,6 +201,8 @@ export const ChatSocketEvents = {
   USER_STOPPED_TYPING: 'user_stopped_typing',
   MESSAGES_RETRIEVED: 'messages_retrieved',
   UNREAD_CHATS_SUMMARY: 'unread_chats_summary',
+  REACTION_ADDED: 'reaction_added',
+  REACTION_REMOVED: 'reaction_removed',
   ERROR: 'error',
 } as const;
 
@@ -181,32 +215,28 @@ class ChatSocketService {
   // Emit Methods (Client -> Server)
   // -------------------------------------------------------------------------
 
-  /**
-   * Join a chat room to receive real-time messages
-   */
+  // Join a chat room to receive real-time messages
   public joinChat(chatId: string): void {
     const payload: IJoinChatPayload = { chat_id: chatId };
     socketService.emit(ChatSocketEvents.JOIN_CHAT, payload);
     console.log('[ChatSocket] Joining chat:', chatId);
   }
 
-  /**
-   * Leave a chat room
-   */
+  // Leave a chat room
   public leaveChat(chatId: string): void {
     const payload: ILeaveChatPayload = { chat_id: chatId };
     socketService.emit(ChatSocketEvents.LEAVE_CHAT, payload);
     console.log('[ChatSocket] Leaving chat:', chatId);
   }
 
-  /**
-   * Send a message in a chat
-   */
+  // Send a message in a chat
   public sendMessage(
     chatId: string,
     content: string,
     messageType: MessageType = 'text',
     replyTo: string | null = null,
+    imageUrl: string | null = null,
+    isFirstMessage: boolean = false,
   ): void {
     const payload: ISendMessagePayload = {
       chat_id: chatId,
@@ -214,15 +244,15 @@ class ChatSocketService {
         content,
         message_type: messageType,
         reply_to_message_id: replyTo,
+        image_url: imageUrl,
+        is_first_message: isFirstMessage,
       },
     };
     socketService.emit(ChatSocketEvents.SEND_MESSAGE, payload);
     console.log('[ChatSocket] Sending message to:', chatId);
   }
 
-  /**
-   * Update/edit a message
-   */
+  // Update/edit a message
   public updateMessage(chatId: string, messageId: string, content: string): void {
     const payload: IUpdateMessagePayload = {
       chat_id: chatId,
@@ -233,9 +263,7 @@ class ChatSocketService {
     console.log('[ChatSocket] Updating message:', messageId);
   }
 
-  /**
-   * Delete a message
-   */
+  // Delete a message
   public deleteMessage(chatId: string, messageId: string): void {
     const payload: IDeleteMessagePayload = {
       chat_id: chatId,
@@ -245,25 +273,41 @@ class ChatSocketService {
     console.log('[ChatSocket] Deleting message:', messageId);
   }
 
-  /**
-   * Notify that user started typing
-   */
+  // Notify that user started typing
   public startTyping(chatId: string): void {
     const payload: ITypingPayload = { chat_id: chatId };
     socketService.emit(ChatSocketEvents.TYPING_START, payload);
   }
 
-  /**
-   * Notify that user stopped typing
-   */
+  // Notify that user stopped typing
   public stopTyping(chatId: string): void {
     const payload: ITypingPayload = { chat_id: chatId };
     socketService.emit(ChatSocketEvents.TYPING_STOP, payload);
   }
 
-  /**
-   * Get paginated messages from a chat via socket
-   */
+  // Add reaction to a message
+  public addReaction(chatId: string, messageId: string, emoji: string): void {
+    const payload: IReactToMessagePayload = {
+      chat_id: chatId,
+      message_id: messageId,
+      emoji,
+    };
+    socketService.emit(ChatSocketEvents.ADD_REACTION, payload);
+    console.log('[ChatSocket] Adding reaction to message:', messageId, 'with', emoji);
+  }
+
+  // Remove reaction from a message
+  public removeReaction(chatId: string, messageId: string, emoji: string): void {
+    const payload: IReactToMessagePayload = {
+      chat_id: chatId,
+      message_id: messageId,
+      emoji,
+    };
+    socketService.emit(ChatSocketEvents.REMOVE_REACTION, payload);
+    console.log('[ChatSocket] Removing reaction from message:', messageId);
+  }
+
+  // Get paginated messages from a chat via socket
   public getMessages(chatId: string, limit?: number, before?: string): void {
     const payload: IGetMessagesPayload = {
       chat_id: chatId,
@@ -333,6 +377,16 @@ class ChatSocketService {
     socketService.on(ChatSocketEvents.ERROR, callback);
   }
 
+  // Listen for reaction added
+  public onReactionAdded(callback: (data: IReactionAddedData) => void): void {
+    socketService.on(ChatSocketEvents.REACTION_ADDED, callback);
+  }
+
+  // Listen for reaction removed
+  public onReactionRemoved(callback: (data: IReactionRemovedData) => void): void {
+    socketService.on(ChatSocketEvents.REACTION_REMOVED, callback);
+  }
+
   // -------------------------------------------------------------------------
   // Remove Listeners
   // -------------------------------------------------------------------------
@@ -379,6 +433,14 @@ class ChatSocketService {
 
   public offError(callback: (data: ISocketError) => void): void {
     socketService.off(ChatSocketEvents.ERROR, callback);
+  }
+
+  public offReactionAdded(callback: (data: IReactionAddedData) => void): void {
+    socketService.off(ChatSocketEvents.REACTION_ADDED, callback);
+  }
+
+  public offReactionRemoved(callback: (data: IReactionRemovedData) => void): void {
+    socketService.off(ChatSocketEvents.REACTION_REMOVED, callback);
   }
 }
 

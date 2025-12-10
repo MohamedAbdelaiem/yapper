@@ -1,14 +1,28 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
+import { uploadMessageImage } from '@/src/modules/chat/services/chatService';
 import { IReplyContext } from '@/src/modules/chat/types';
-import { Send, X } from 'lucide-react-native';
-import React from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { Image as ImageIcon, Mic, Send, X } from 'lucide-react-native';
+import React, { useState } from 'react';
+import {
+  ActivityIndicator,
+  Alert,
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  ToastAndroid,
+  TouchableOpacity,
+  View,
+  ViewStyle,
+} from 'react-native';
 
 interface ChatInputProps {
   value: string;
   onChangeText: (text: string) => void;
-  onSend: () => void;
+  onSend: (imageUrl?: string | null) => void;
   placeholder?: string;
   style?: ViewStyle;
   replyingTo?: IReplyContext | null;
@@ -26,30 +40,108 @@ export default function ChatInput({
 }: ChatInputProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const [previewUri, setPreviewUri] = useState<string | null>(null);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
 
-  const handleSend = () => {
-    if (value.trim()) {
-      onSend();
+  const showToast = (message: string) => {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(message, ToastAndroid.SHORT);
+    } else {
+      Alert.alert('Error', message);
     }
   };
 
+  const handleSend = () => {
+    if (value.trim() || uploadedImageUrl) {
+      onSend(uploadedImageUrl);
+      setPreviewUri(null);
+      setUploadedImageUrl(null);
+    }
+  };
+
+  const handlePickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      Alert.alert('Permission Required', 'Please allow access to your photo library.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      const imageUri = result.assets[0].uri;
+      setPreviewUri(imageUri);
+      setIsUploading(true);
+
+      try {
+        const uploadResult = await uploadMessageImage(imageUri);
+        setUploadedImageUrl(uploadResult.imageUrl);
+      } catch {
+        showToast('Failed to upload image. Please try again.');
+        setPreviewUri(null);
+        setUploadedImageUrl(null);
+      } finally {
+        setIsUploading(false);
+      }
+    }
+  };
+
+  const handleVoiceNote = () => {
+    setIsRecording(!isRecording);
+    Alert.alert('Coming Soon', 'Voice notes will be available soon!');
+  };
+
+  const handleRemoveImage = () => {
+    setPreviewUri(null);
+    setUploadedImageUrl(null);
+  };
+
+  const canSend = (value.trim() || uploadedImageUrl) && !isUploading;
+
   return (
     <View style={[styles.container, style]}>
-      {/* Reply preview banner */}
       {replyingTo && (
         <View style={styles.replyBanner}>
           <View style={styles.replyBannerContent}>
             <Text style={styles.replyBannerLabel}>Replying to {replyingTo.senderName}</Text>
-            <Text style={styles.replyBannerText} numberOfLines={1}>
-              {replyingTo.content}
-            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              {replyingTo.hasImage && <ImageIcon size={14} color={theme.colors.text.secondary} />}
+              <Text
+                style={[styles.replyBannerText, { flex: 1, paddingEnd: replyingTo.hasImage ? theme.spacing.sm : 0 }]}
+                numberOfLines={1}
+              >
+                {replyingTo.hasImage && !replyingTo.content ? 'Photo' : replyingTo.content}
+              </Text>
+            </View>
           </View>
           <TouchableOpacity style={styles.replyBannerClose} onPress={onCancelReply}>
             <X color={theme.colors.text.secondary} size={20} />
           </TouchableOpacity>
         </View>
       )}
+      {previewUri && (
+        <View style={styles.imagePreviewContainer}>
+          <Image source={{ uri: previewUri }} style={styles.imagePreview} />
+          {isUploading && (
+            <View style={styles.uploadingOverlay}>
+              <ActivityIndicator size="small" color={theme.colors.text.inverse} />
+            </View>
+          )}
+          <TouchableOpacity style={styles.removeImageButton} onPress={handleRemoveImage}>
+            <X color={theme.colors.text.inverse} size={16} />
+          </TouchableOpacity>
+        </View>
+      )}
       <View style={styles.inputRow}>
+        <TouchableOpacity style={styles.mediaButton} onPress={handlePickImage} disabled={isUploading}>
+          <ImageIcon color={isUploading ? theme.colors.text.secondary : theme.colors.accent.bookmark} size={24} />
+        </TouchableOpacity>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
@@ -61,12 +153,15 @@ export default function ChatInput({
             maxLength={1000}
           />
         </View>
+        <TouchableOpacity style={[styles.mediaButton, isRecording && styles.recordingButton]} onPress={handleVoiceNote}>
+          <Mic color={isRecording ? theme.colors.text.inverse : theme.colors.accent.bookmark} size={24} />
+        </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.sendButton, !value.trim() && styles.sendButtonDisabled]}
+          style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
           onPress={handleSend}
-          disabled={!value.trim()}
+          disabled={!canSend}
         >
-          <Send color={value.trim() ? theme.colors.text.inverse : theme.colors.text.secondary} size={20} />
+          <Send color={canSend ? theme.colors.text.inverse : theme.colors.text.secondary} size={20} />
         </TouchableOpacity>
       </View>
     </View>
@@ -83,8 +178,8 @@ const createStyles = (theme: Theme) =>
     inputRow: {
       flexDirection: 'row',
       alignItems: 'flex-end',
-      padding: theme.spacing.lg,
-      gap: theme.spacing.sm,
+      padding: theme.spacing.md,
+      gap: theme.spacing.xs,
     },
     inputWrapper: {
       flex: 1,
@@ -100,6 +195,16 @@ const createStyles = (theme: Theme) =>
       padding: 0,
       minHeight: 20,
     },
+    mediaButton: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    recordingButton: {
+      backgroundColor: theme.colors.accent.bookmark,
+    },
     sendButton: {
       width: 40,
       height: 40,
@@ -111,7 +216,6 @@ const createStyles = (theme: Theme) =>
     sendButtonDisabled: {
       backgroundColor: theme.colors.background.secondary,
     },
-    // Reply banner styles
     replyBanner: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -136,5 +240,36 @@ const createStyles = (theme: Theme) =>
     },
     replyBannerClose: {
       padding: theme.spacing.xs,
+    },
+    imagePreviewContainer: {
+      padding: theme.spacing.md,
+      paddingBottom: 0,
+    },
+    imagePreview: {
+      width: 120,
+      height: 120,
+      borderRadius: theme.borderRadius.md,
+    },
+    uploadingOverlay: {
+      position: 'absolute',
+      top: theme.spacing.md,
+      left: theme.spacing.md,
+      width: 120,
+      height: 120,
+      borderRadius: theme.borderRadius.md,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    removeImageButton: {
+      position: 'absolute',
+      top: theme.spacing.lg,
+      left: theme.spacing.lg,
+      width: theme.spacing.xxl,
+      height: theme.spacing.xxl,
+      borderRadius: theme.borderRadius.xxl,
+      backgroundColor: 'rgba(0,0,0,0.6)',
+      justifyContent: 'center',
+      alignItems: 'center',
     },
   });

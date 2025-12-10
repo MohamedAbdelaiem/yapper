@@ -41,7 +41,7 @@ export const useAuthStore = create<IAuthState>((set) => ({
 
   /** Initialize auth on app start */
   initializeAuth: async () => {
-    const authSuccessful = false;
+    let authSuccessful = false;
     try {
       const token = await getToken();
       const refreshToken = await getRefreshToken();
@@ -60,6 +60,7 @@ export const useAuthStore = create<IAuthState>((set) => ({
           if (refreshToken) {
             tokenRefreshService.start();
           }
+          authSuccessful = true; // Auth succeeded with existing token
         } catch {
           await deleteToken();
           await deleteRefreshToken();
@@ -85,6 +86,7 @@ export const useAuthStore = create<IAuthState>((set) => ({
             }
 
             tokenRefreshService.start();
+            authSuccessful = true; // Auth succeeded with refreshed token
           }
         } catch {
           await deleteToken();
