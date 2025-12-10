@@ -12,9 +12,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { logout, logOutAll } from '../modules/auth/services/authService';
 import { getMyUser } from '../modules/profile/services/profileService';
+import { IGetMyUserResponse } from '../modules/profile/types';
 import { socketService } from '../services/socketService';
 import { tokenRefreshService } from '../services/tokenRefreshService';
-import { IGetMyUserResponse } from '../modules/profile/types';
 
 interface IAuthState {
   user: IUser | null;
@@ -41,7 +41,7 @@ export const useAuthStore = create<IAuthState>((set) => ({
 
   /** Initialize auth on app start */
   initializeAuth: async () => {
-    let authSuccessful = false;
+    const authSuccessful = false;
     try {
       const token = await getToken();
       const refreshToken = await getRefreshToken();
@@ -205,6 +205,7 @@ export const useAuthStore = create<IAuthState>((set) => ({
       } else {
         await logout();
       }
+      socketService.disconnect();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
