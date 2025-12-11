@@ -4,10 +4,11 @@ import useSpacing from '@/src/hooks/useSpacing';
 import ChatHeader from '@/src/modules/chat/components/ChatHeader';
 import ChatInput from '@/src/modules/chat/components/ChatInput';
 import ChatMessagesList from '@/src/modules/chat/components/ChatMessagesList';
+import EmojiPickerSheet from '@/src/modules/chat/components/EmojiPickerSheet';
 import { useChatConversation } from '@/src/modules/chat/hooks/useChatConversation';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -31,6 +32,7 @@ export default function ChatConversationPage() {
   const userUsername = params.username || 'unknown';
   const hasTypedThisSession = useRef<boolean>(false);
   const wasKeyboardVisible = useRef<boolean>(false);
+  const [pickingEmojiMessageId, setPickingEmojiMessageId] = useState<string | null>(null);
 
   const {
     messages,
@@ -129,6 +131,7 @@ export default function ChatConversationPage() {
             onReactToMessage={handleReactToMessage}
             onRemoveReactToMessage={handleRemoveReactToMessage}
             replyingTo={replyingTo}
+            onRequestEmojiPicker={setPickingEmojiMessageId}
           />
         )}
       </View>
@@ -140,6 +143,15 @@ export default function ChatConversationPage() {
         replyingTo={replyingTo}
         onCancelReply={handleCancelReply}
       />
+      {pickingEmojiMessageId && (
+        <EmojiPickerSheet
+          onSelect={(emoji) => {
+            handleReactToMessage(pickingEmojiMessageId, emoji);
+            setPickingEmojiMessageId(null);
+          }}
+          onClose={() => setPickingEmojiMessageId(null)}
+        />
+      )}
     </KeyboardAvoidingView>
   );
 }

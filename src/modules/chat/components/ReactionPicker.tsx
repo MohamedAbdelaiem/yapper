@@ -5,8 +5,6 @@ import React from 'react';
 import { Dimensions, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 const REACTIONS = ['❤️', '😂', '😮', '😢', '😠', '👍'];
-const SCREEN_WIDTH = Dimensions.get('window').width;
-const PICKER_WIDTH = Math.min(SCREEN_WIDTH * 0.8, 250);
 
 interface ReactionPickerModalProps {
   visible: boolean;
@@ -98,21 +96,20 @@ const createStyles = (theme: Theme) =>
   StyleSheet.create({
     overlay: {
       flex: 1,
-      backgroundColor: 'rgba(0, 0, 0, 0.2)', // Lighter overlay since we position contextually
+      backgroundColor: 'rgba(0, 0, 0, 0.2)',
     },
     contentWrapper: {
       alignItems: 'center',
-      alignSelf: 'center', // Center horizontally
+      alignSelf: 'center',
       paddingHorizontal: theme.spacing.lg,
       maxWidth: '85%',
-      // Default center if no position
       marginTop: 'auto',
       marginBottom: 'auto',
     },
     pickerContainer: {
       flexDirection: 'row',
       backgroundColor: theme.colors.background.primary,
-      borderRadius: theme.borderRadius.full, // Pill shape
+      borderRadius: theme.borderRadius.full,
       paddingVertical: theme.spacing.sm,
       paddingHorizontal: theme.spacing.md,
       shadowColor: '#000',
@@ -120,7 +117,6 @@ const createStyles = (theme: Theme) =>
       shadowOpacity: 0.3,
       shadowRadius: 8,
       elevation: 10,
-      width: PICKER_WIDTH,
       justifyContent: 'space-evenly',
     },
     reactionButton: {

@@ -19,6 +19,7 @@ interface ChatMessagesListProps {
   onReactToMessage?: (messageId: string, emoji: string) => void;
   onRemoveReactToMessage?: (messageId: string, emoji: string) => void;
   replyingTo?: IReplyContext | null;
+  onRequestEmojiPicker?: (messageId: string) => void;
 }
 
 export default function ChatMessagesList({
@@ -33,6 +34,7 @@ export default function ChatMessagesList({
   onReactToMessage,
   onRemoveReactToMessage,
   replyingTo,
+  onRequestEmojiPicker,
 }: ChatMessagesListProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -77,8 +79,9 @@ export default function ChatMessagesList({
       }, 100);
     }
   }, [replyingTo]);
+
   const renderMessage = useCallback(
-    ({ item }: { item: IChatMessageItem }) => {
+    ({ item, onOpenEmojiPicker }: { item: IChatMessageItem; onOpenEmojiPicker?: () => void }) => {
       let isOwn: boolean;
       if (item.senderId) {
         isOwn = item.senderId === currentUserId;
@@ -114,6 +117,7 @@ export default function ChatMessagesList({
           onReply={() => onReplyToMessage?.(item, getSenderName())}
           onReact={onReactToMessage}
           onRemoveReact={onRemoveReactToMessage}
+          onOpenEmojiPicker={onOpenEmojiPicker}
         />
       );
     },
@@ -144,7 +148,14 @@ export default function ChatMessagesList({
     <FlashList
       ref={flashListRef}
       data={messages}
-      renderItem={renderMessage}
+      renderItem={(props) =>
+        renderMessage({
+          ...props,
+          onOpenEmojiPicker: () => {
+            onRequestEmojiPicker?.(props.item.id);
+          },
+        } as any)
+      }
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.listContent}
       onStartReached={handleLoadMore}

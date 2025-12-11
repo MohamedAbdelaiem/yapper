@@ -31,6 +31,7 @@ export interface ILastMessage {
   senderId: string;
   createdAt: string;
   isRead: boolean;
+  imageUrl?: string | null;
 }
 
 export interface IChat {

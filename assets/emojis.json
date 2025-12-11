@@ -9356,20 +9356,6 @@
         "keywords": ["mobile_phone_off", "mute", "orange-square", "silence", "quiet"]
       },
       {
-        "emoji": "♀️",
-        "name": "female sign",
-        "v": "4.0",
-        "toneEnabled": false,
-        "keywords": ["female_sign", "woman", "women", "lady", "girl"]
-      },
-      {
-        "emoji": "♂️",
-        "name": "male sign",
-        "v": "4.0",
-        "toneEnabled": false,
-        "keywords": ["male_sign", "man", "boy", "men"]
-      },
-      {
         "emoji": "✖️",
         "name": "multiply",
         "v": "0.6",
@@ -9474,13 +9460,6 @@
         "v": "0.6",
         "toneEnabled": false,
         "keywords": ["heavy_dollar_sign", "money", "sales", "payment", "currency", "buck"]
-      },
-      {
-        "emoji": "⚕️",
-        "name": "medical symbol",
-        "v": "4.0",
-        "toneEnabled": false,
-        "keywords": ["medical_symbol", "health", "hospital"]
       },
       {
         "emoji": "♻️",
@@ -10510,13 +10489,6 @@
         "keywords": ["flag_bhutan", "bt", "flag", "nation", "country", "banner", "bhutan"]
       },
       {
-        "emoji": "🇧🇻",
-        "name": "flag Bouvet Island",
-        "v": "2.0",
-        "toneEnabled": false,
-        "keywords": ["flag_bouvet_island", "norway"]
-      },
-      {
         "emoji": "🇧🇼",
         "name": "flag Botswana",
         "v": "2.0",
@@ -11522,23 +11494,6 @@
         "keywords": ["flag_macao_sar_china", "macao", "flag", "nation", "country", "banner", "macao_sar_china"]
       },
       {
-        "emoji": "🇲🇵",
-        "name": "flag Northern Mariana Islands",
-        "v": "2.0",
-        "toneEnabled": false,
-        "keywords": [
-          "flag_northern_mariana_islands",
-          "northern",
-          "mariana",
-          "islands",
-          "flag",
-          "nation",
-          "country",
-          "banner",
-          "northern_mariana_islands"
-        ]
-      },
-      {
         "emoji": "🇲🇶",
         "name": "flag Martinique",
         "v": "2.0",
@@ -12248,13 +12203,6 @@
         "keywords": ["flag_uganda", "ug", "flag", "nation", "country", "banner", "uganda"]
       },
       {
-        "emoji": "🇺🇲",
-        "name": "flag U.S. Outlying Islands",
-        "v": "2.0",
-        "toneEnabled": false,
-        "keywords": ["flag_u_s_outlying_islands"]
-      },
-      {
         "emoji": "🇺🇳",
         "name": "flag United Nations",
         "v": "4.0",
@@ -12334,24 +12282,6 @@
         ]
       },
       {
-        "emoji": "🇻🇬",
-        "name": "flag British Virgin Islands",
-        "v": "2.0",
-        "toneEnabled": false,
-        "keywords": [
-          "flag_british_virgin_islands",
-          "british",
-          "virgin",
-          "islands",
-          "bvi",
-          "flag",
-          "nation",
-          "country",
-          "banner",
-          "british_virgin_islands"
-        ]
-      },
-      {
         "emoji": "🇻🇮",
         "name": "flag U.S. Virgin Islands",
         "v": "2.0",
@@ -12374,20 +12304,6 @@
         "v": "2.0",
         "toneEnabled": false,
         "keywords": ["flag_vietnam", "viet", "nam", "flag", "nation", "country", "banner", "vietnam"]
-      },
-      {
-        "emoji": "🇻🇺",
-        "name": "flag Vanuatu",
-        "v": "2.0",
-        "toneEnabled": false,
-        "keywords": ["flag_vanuatu", "vu", "flag", "nation", "country", "banner", "vanuatu"]
-      },
-      {
-        "emoji": "🇼🇫",
-        "name": "flag Wallis & Futuna",
-        "v": "2.0",
-        "toneEnabled": false,
-        "keywords": ["flag_wallis_futuna", "wallis", "futuna", "flag", "nation", "country", "banner", "wallis_futuna"]
       },
       {
         "emoji": "🇼🇸",

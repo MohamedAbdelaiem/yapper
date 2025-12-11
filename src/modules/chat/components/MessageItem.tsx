@@ -1,6 +1,7 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
 import { formatRelativeTime } from '@/src/modules/chat/utils/formatters';
+import { Image as ImageIcon } from 'lucide-react-native';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { IChat } from '../types';
@@ -16,6 +17,36 @@ export default function MessageItem({ chat, onPress }: MessageItemProps) {
   const { participant, lastMessage, unreadCount } = chat;
   const hasUnread = unreadCount > 0;
   const timestamp = lastMessage?.createdAt;
+
+  const renderPreview = () => {
+    if (!lastMessage) return <Text style={styles.noMessages}>No messages yet</Text>;
+
+    const hasImage = !!lastMessage.imageUrl;
+    const content = lastMessage.content || (hasImage ? 'Photo' : '');
+
+    return (
+      <View style={styles.previewContainer}>
+        {hasImage && (
+          <ImageIcon
+            size={16}
+            color={hasUnread ? theme.colors.text.primary : theme.colors.text.secondary}
+            style={styles.previewIcon}
+          />
+        )}
+        <Text
+          style={[
+            styles.messagePreview,
+            hasUnread && styles.messagePreviewUnread,
+            hasImage && styles.imageTextContainer,
+          ]}
+          numberOfLines={1}
+        >
+          {content}
+        </Text>
+      </View>
+    );
+  };
+
   return (
     <TouchableOpacity style={styles.messageItem} onPress={onPress}>
       {participant.avatarUrl ? (
@@ -43,13 +74,7 @@ export default function MessageItem({ chat, onPress }: MessageItemProps) {
           </View>
           {hasUnread && <View style={styles.unreadDot} />}
         </View>
-        {lastMessage ? (
-          <Text style={[styles.messagePreview, hasUnread && styles.messagePreviewUnread]} numberOfLines={1}>
-            {lastMessage.content}
-          </Text>
-        ) : (
-          <Text style={styles.noMessages}>No messages yet</Text>
-        )}
+        {renderPreview()}
       </View>
     </TouchableOpacity>
   );
@@ -134,5 +159,15 @@ const createStyles = (theme: Theme) =>
       borderRadius: 5,
       backgroundColor: theme.colors.accent.bookmark,
       marginLeft: theme.spacing.xs,
+    },
+    previewContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    previewIcon: {
+      marginRight: theme.spacing.xs,
+    },
+    imageTextContainer: {
+      paddingEnd: theme.spacing.md,
     },
   });

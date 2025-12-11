@@ -15,6 +15,7 @@ interface ChatBubbleProps {
   onReply?: () => void;
   onReact?: (messageId: string, emoji: string) => void;
   onRemoveReact?: (messageId: string, emoji: string) => void;
+  onOpenEmojiPicker?: () => void;
 }
 
 export default function ChatBubble({
@@ -25,6 +26,7 @@ export default function ChatBubble({
   onReply,
   onReact,
   onRemoveReact,
+  onOpenEmojiPicker,
 }: ChatBubbleProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
@@ -151,6 +153,10 @@ export default function ChatBubble({
         visible={showReactionPicker}
         onClose={() => setShowReactionPicker(false)}
         onReactionSelect={handleReactionSelect}
+        onMorePress={() => {
+          setShowReactionPicker(false);
+          setTimeout(() => onOpenEmojiPicker?.(), 300);
+        }}
         selectedEmoji={userReaction?.emoji}
         isOwnMessage={isOwn}
         touchY={touchY}
