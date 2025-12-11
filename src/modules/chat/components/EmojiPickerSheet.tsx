@@ -5,6 +5,7 @@ import { getEmojiCategories, searchEmojis } from '@/src/modules/chat/utils/emoji
 import { BottomSheetFlatList, BottomSheetModal, BottomSheetTextInput } from '@gorhom/bottom-sheet';
 import { Search } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface EmojiPickerSheetProps {
@@ -15,6 +16,7 @@ interface EmojiPickerSheetProps {
 export default function EmojiPickerSheet({ onSelect, onClose }: EmojiPickerSheetProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const { t } = useTranslation();
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -85,12 +87,12 @@ export default function EmojiPickerSheet({ onSelect, onClose }: EmojiPickerSheet
           <Search size={20} color={theme.colors.text.secondary} style={styles.searchIcon} />
           <BottomSheetTextInput
             style={styles.searchInput}
-            placeholder="Search emojis..."
+            placeholder={t('messages.emoji.searchPlaceholder')}
             placeholderTextColor={theme.colors.text.secondary}
             value={searchQuery}
             onChangeText={setSearchQuery}
             testID="emoji_picker_search_input"
-            accessibilityLabel="Search emojis"
+            accessibilityLabel={t('messages.emoji.searchLabel')}
           />
         </View>
 

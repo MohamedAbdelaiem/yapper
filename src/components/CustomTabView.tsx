@@ -213,12 +213,7 @@ const CustomTabView: React.FC<CustomTabViewProps> = ({
         })}
         <Animated.View
           pointerEvents="none"
-          style={[
-            styles.indicator,
-            isRTL
-              ? { right: indicatorStart.current, width: indicatorWidth.current }
-              : { left: indicatorStart.current, width: indicatorWidth.current },
-          ]}
+          style={[styles.indicator, { left: indicatorStart.current, width: indicatorWidth.current }]}
         />
       </View>
     );

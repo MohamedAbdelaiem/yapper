@@ -1,6 +1,7 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface MessagesEmptyStateProps {
@@ -10,23 +11,22 @@ interface MessagesEmptyStateProps {
 export default function MessagesEmptyState({ onWriteMessage }: MessagesEmptyStateProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const { t } = useTranslation();
 
   return (
     <View style={styles.emptyState} testID="messages_empty_state_container">
       <Text style={styles.emptyTitle} testID="messages_empty_state_title">
-        Welcome to your inbox!
+        {t('messages.emptyState.title')}
       </Text>
-      <Text style={styles.emptySubtitle}>
-        Drop a line, share posts and more with private conversations between you and others.
-      </Text>
+      <Text style={styles.emptySubtitle}>{t('messages.emptyState.subtitle')}</Text>
       <TouchableOpacity
         style={styles.emptyButton}
         onPress={onWriteMessage}
         testID="messages_empty_state_button"
-        accessibilityLabel="Write a message"
+        accessibilityLabel={t('messages.emptyState.writeMessage')}
         accessibilityRole="button"
       >
-        <Text style={styles.emptyButtonText}>Write a message</Text>
+        <Text style={styles.emptyButtonText}>{t('messages.emptyState.writeMessage')}</Text>
       </TouchableOpacity>
     </View>
   );

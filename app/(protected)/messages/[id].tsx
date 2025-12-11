@@ -9,6 +9,7 @@ import { useChatConversation } from '@/src/modules/chat/hooks/useChatConversatio
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -28,7 +29,8 @@ export default function ChatConversationPage() {
   const { top, bottom } = useSpacing();
   const headerPadding = top - theme.ui.appBarHeight - theme.ui.tabViewHeight;
   const styles = createStyles(theme);
-  const userName = params.name || 'Unknown User';
+  const { t } = useTranslation();
+  const userName = params.name || t('messages.bubble.unknown');
   const userUsername = params.username || 'unknown';
   const hasTypedThisSession = useRef<boolean>(false);
   const wasKeyboardVisible = useRef<boolean>(false);
@@ -119,16 +121,16 @@ export default function ChatConversationPage() {
         ) : isError ? (
           <View style={styles.errorContainer} testID="chat_error_container">
             <Text style={styles.errorText} testID="chat_error_text">
-              Failed to load messages
+              {t('messages.failedToLoad')}
             </Text>
             <TouchableOpacity
               style={styles.retryButton}
               onPress={() => queryClient.invalidateQueries({ queryKey: ['messages', chatId] })}
               testID="chat_retry_button"
-              accessibilityLabel="Retry loading messages"
+              accessibilityLabel={t('messages.accessibility.retryLoading')}
               accessibilityRole="button"
             >
-              <Text style={styles.retryButtonText}>Tap to Retry</Text>
+              <Text style={styles.retryButtonText}>{t('messages.tapToRetry')}</Text>
             </TouchableOpacity>
           </View>
         ) : (

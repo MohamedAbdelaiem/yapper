@@ -4,6 +4,7 @@ import { IChatMessageItem } from '@/src/modules/chat/types';
 import { formatMessageTime } from '@/src/modules/chat/utils/formatters';
 import { Image as ImageIcon } from 'lucide-react-native';
 import React, { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import ReactionPicker from './ReactionPicker';
 
@@ -30,6 +31,7 @@ export default function ChatBubble({
 }: ChatBubbleProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const { t } = useTranslation();
   const lastTapRef = useRef<number>(0);
   const bubbleRef = useRef<View>(null);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
@@ -104,7 +106,7 @@ export default function ChatBubble({
               ]}
               numberOfLines={2}
             >
-              {!!replyMessage.imageUrl && !replyMessage.content ? 'Photo' : replyMessage.content}
+              {!!replyMessage.imageUrl && !replyMessage.content ? t('messages.bubble.photo') : replyMessage.content}
             </Text>
           </View>
         </View>
@@ -114,6 +116,7 @@ export default function ChatBubble({
         style={[
           styles.bubble,
           isOwn ? styles.ownBubble : styles.otherBubble,
+          isOwn ? styles.ownBubbleTail : styles.otherBubbleTail,
           hasImage && styles.imageBubble,
           hasImage && hasText && styles.imageWithTextBubble,
         ]}
@@ -122,7 +125,7 @@ export default function ChatBubble({
         delayLongPress={400}
         activeOpacity={0.8}
         testID={`chat_bubble_${message.id}`}
-        accessibilityLabel={isOwn ? 'Your message' : 'Received message'}
+        accessibilityLabel={isOwn ? t('messages.bubble.yourMessage') : t('messages.bubble.receivedMessage')}
       >
         {hasImage && (
           <Image
@@ -191,8 +194,14 @@ const createStyles = (theme: Theme) =>
     ownBubble: {
       backgroundColor: theme.colors.accent.bookmark,
     },
+    ownBubbleTail: {
+      borderBottomRightRadius: 4,
+    },
     otherBubble: {
       backgroundColor: theme.colors.background.secondary,
+    },
+    otherBubbleTail: {
+      borderBottomLeftRadius: 4,
     },
     text: {
       fontSize: theme.typography.sizes.md,

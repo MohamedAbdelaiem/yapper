@@ -12,6 +12,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { MailPlus, SettingsIcon } from 'lucide-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -23,6 +24,7 @@ export default function MessagesPage() {
   const router = useRouter();
   const { bottom } = useSpacing();
   const styles = createStyles(theme);
+  const { t } = useTranslation();
   const [searchQuery] = React.useState('');
   const [isNewMessageModalVisible, setIsNewMessageModalVisible] = useState(false);
   const top = insets.top + theme.ui.appBarHeight;
@@ -131,19 +133,23 @@ export default function MessagesPage() {
       <View style={styles.appBarWrapper}>
         <AppBar rightElement={<SettingsIcon color={theme.colors.text.primary} />}>
           <Text style={styles.title} testID="messages_header_title">
-            Messages
+            {t('messages.title')}
           </Text>
         </AppBar>
       </View>
       <View style={{ marginTop: top }} />
       {isLoading ? (
         <View style={styles.loadingContainer} testID="messages_loading_indicator">
-          <ActivityIndicator size="large" color={theme.colors.accent.bookmark} accessibilityLabel="Loading messages" />
+          <ActivityIndicator
+            size="large"
+            color={theme.colors.accent.bookmark}
+            accessibilityLabel={t('messages.accessibility.loadingMessages')}
+          />
         </View>
       ) : isError ? (
         <View style={styles.errorContainer} testID="messages_error_container">
           <Text style={styles.errorText} testID="messages_error_text">
-            Failed to load messages
+            {t('messages.failedToLoad')}
           </Text>
         </View>
       ) : (

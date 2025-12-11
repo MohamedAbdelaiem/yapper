@@ -1,7 +1,9 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
+import { useRTL } from '@/src/hooks/useRTL';
 import { ArrowLeft, Info } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 interface ChatHeaderProps {
@@ -15,6 +17,8 @@ interface ChatHeaderProps {
 export default function ChatHeader({ name, username, avatarUrl, onBack, onInfo }: ChatHeaderProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const { t } = useTranslation();
+  const isRTL = useRTL();
 
   return (
     <View style={styles.container} testID="chat_header_container">
@@ -22,10 +26,14 @@ export default function ChatHeader({ name, username, avatarUrl, onBack, onInfo }
         style={styles.backButton}
         onPress={onBack}
         testID="chat_header_back_button"
-        accessibilityLabel="Go back"
+        accessibilityLabel={t('messages.header.goBack')}
         accessibilityRole="button"
       >
-        <ArrowLeft color={theme.colors.text.primary} size={24} />
+        <ArrowLeft
+          color={theme.colors.text.primary}
+          style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined}
+          size={24}
+        />
       </TouchableOpacity>
       <View style={styles.userInfo}>
         {avatarUrl ? (
@@ -49,7 +57,7 @@ export default function ChatHeader({ name, username, avatarUrl, onBack, onInfo }
           style={styles.infoButton}
           onPress={onInfo}
           testID="chat_header_info_button"
-          accessibilityLabel="Chat info"
+          accessibilityLabel={t('messages.header.chatInfo')}
           accessibilityRole="button"
         >
           <Info color={theme.colors.text.primary} size={24} />
@@ -102,10 +110,12 @@ const createStyles = (theme: Theme) =>
       fontSize: theme.typography.sizes.md,
       fontFamily: theme.typography.fonts.bold,
       color: theme.colors.text.primary,
+      textAlign: 'left',
     },
     username: {
       fontSize: theme.typography.sizes.sm,
       color: theme.colors.text.secondary,
+      textAlign: 'left',
     },
     infoButton: {
       padding: theme.spacing.xs,

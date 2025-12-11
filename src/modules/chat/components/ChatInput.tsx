@@ -5,6 +5,7 @@ import { IReplyContext } from '@/src/modules/chat/types';
 import * as ImagePicker from 'expo-image-picker';
 import { Image as ImageIcon, Mic, Send, X } from 'lucide-react-native';
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
@@ -40,6 +41,7 @@ export default function ChatInput({
 }: ChatInputProps) {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const { t } = useTranslation();
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -144,7 +146,7 @@ export default function ChatInput({
           onPress={handlePickImage}
           disabled={isUploading}
           testID="chat_input_image_button"
-          accessibilityLabel="Pick image"
+          accessibilityLabel={t('messages.input.pickImage')}
           accessibilityRole="button"
         >
           <ImageIcon color={isUploading ? theme.colors.text.secondary : theme.colors.accent.bookmark} size={24} />
@@ -159,14 +161,14 @@ export default function ChatInput({
             multiline
             maxLength={1000}
             testID="chat_input_text_field"
-            accessibilityLabel="Message input"
+            accessibilityLabel={t('messages.input.messageInput')}
           />
         </View>
         <TouchableOpacity
           style={[styles.mediaButton, isRecording && styles.recordingButton]}
           onPress={handleVoiceNote}
           testID="chat_input_voice_button"
-          accessibilityLabel="Voice note"
+          accessibilityLabel={t('messages.input.voiceNote')}
           accessibilityRole="button"
         >
           <Mic color={isRecording ? theme.colors.text.inverse : theme.colors.accent.bookmark} size={24} />
@@ -176,7 +178,7 @@ export default function ChatInput({
           onPress={handleSend}
           disabled={!canSend}
           testID="chat_input_send_button"
-          accessibilityLabel="Send message"
+          accessibilityLabel={t('messages.input.sendMessage')}
           accessibilityRole="button"
         >
           <Send color={canSend ? theme.colors.text.inverse : theme.colors.text.secondary} size={20} />

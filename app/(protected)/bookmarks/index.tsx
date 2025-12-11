@@ -52,7 +52,7 @@ export default function BookmarksScreen() {
             <ArrowLeft
               color={theme.colors.background.inverse}
               size={24}
-              style={isRTL ? { transform: [{ scaleX: -1 }] } : undefined}
+              style={isRTL ? { transform: [{ rotate: '180deg' }] } : undefined}
             />
           </TouchableOpacity>
           <Text style={[styles.headerTitle]} testID="bookmarks_header_title">

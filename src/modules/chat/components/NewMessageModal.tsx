@@ -4,6 +4,7 @@ import { FlashList } from '@shopify/flash-list';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ArrowLeft, Search, X } from 'lucide-react-native';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createChat, searchUsers } from '../services/chatService';
@@ -27,6 +28,7 @@ interface IUserItemProps {
 const UserItem: React.FC<IUserItemProps> = ({ user, onPress, isCreating }) => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const { t } = useTranslation();
 
   return (
     <Pressable
@@ -34,7 +36,7 @@ const UserItem: React.FC<IUserItemProps> = ({ user, onPress, isCreating }) => {
       onPress={() => onPress(user)}
       disabled={isCreating}
       testID={`new_message_user_item_${user.userId}`}
-      accessibilityLabel={`Start chat with ${user.name}`}
+      accessibilityLabel={t('messages.search.startChat', { name: user.name })}
     >
       <Image
         source={user.avatarUrl ? { uri: user.avatarUrl } : require('@assets/images/avatar-placeholder.png')}
@@ -59,6 +61,7 @@ const NewMessageModal: React.FC<INewMessageModalProps> = ({ visible, onClose, on
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
   const styles = createStyles(theme);
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   const [searchQuery, setSearchQuery] = useState('');
@@ -179,14 +182,14 @@ const NewMessageModal: React.FC<INewMessageModalProps> = ({ visible, onClose, on
     if (debouncedQuery.length === 0) {
       return (
         <View style={styles.emptyState}>
-          <Text style={styles.emptyStateText}>Search for people to message</Text>
+          <Text style={styles.emptyStateText}>{t('messages.search.searchPrompt')}</Text>
         </View>
       );
     }
 
     return (
       <View style={styles.emptyState}>
-        <Text style={styles.emptyStateText}>No users found for "{debouncedQuery}"</Text>
+        <Text style={styles.emptyStateText}>{t('messages.search.noResults', { query: debouncedQuery })}</Text>
       </View>
     );
   };
@@ -217,7 +220,7 @@ const NewMessageModal: React.FC<INewMessageModalProps> = ({ visible, onClose, on
             <ArrowLeft size={24} color={theme.colors.text.primary} />
           </Pressable>
           <Text style={styles.headerTitle} testID="new_message_header_title">
-            New Message
+            {t('messages.newMessage')}
           </Text>
           <View style={styles.headerRight} />
         </View>
@@ -227,7 +230,7 @@ const NewMessageModal: React.FC<INewMessageModalProps> = ({ visible, onClose, on
           <Search size={20} color={theme.colors.text.secondary} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search people"
+            placeholder={t('messages.search.placeholder')}
             placeholderTextColor={theme.colors.text.secondary}
             value={searchQuery}
             onChangeText={handleSearchChange}
@@ -236,7 +239,7 @@ const NewMessageModal: React.FC<INewMessageModalProps> = ({ visible, onClose, on
             returnKeyType="search"
             autoFocus
             testID="new_message_search_input"
-            accessibilityLabel="Search people"
+            accessibilityLabel={t('messages.search.placeholder')}
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={handleClearSearch} style={styles.clearButton} hitSlop={8}>
@@ -261,7 +264,7 @@ const NewMessageModal: React.FC<INewMessageModalProps> = ({ visible, onClose, on
         {creatingForUserId && (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={theme.colors.accent.bookmark} />
-            <Text style={styles.loadingText}>Creating chat...</Text>
+            <Text style={styles.loadingText}>{t('messages.creatingChat')}</Text>
           </View>
         )}
       </View>
