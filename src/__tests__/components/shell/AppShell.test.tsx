@@ -5,12 +5,13 @@ import { useChatSocketListeners } from '@/src/modules/chat/hooks/useChatSocketLi
 import { render, screen } from '@testing-library/react-native';
 import { usePathname, useSegments } from 'expo-router';
 import React from 'react';
+import { View } from 'react-native';
 
 // Mocks
 jest.mock('expo-router', () => ({
   useSegments: jest.fn(),
   usePathname: jest.fn(),
-  Stack: () => <div testID="mock-stack" />,
+  Stack: () => <View testID="mock-stack" />,
 }));
 
 jest.mock('@/src/hooks/useSocketConnection', () => ({
@@ -48,7 +49,7 @@ describe('AppShell', () => {
 
   it('should toggle bottom navigation based on route', () => {
     // Normal route
-    const { unmount } = renderWithTheme(<AppShell />);
+    renderWithTheme(<AppShell />);
     // Since we mocked the component string, we check if it's there?
     // RNTL renders string components as text nodes often? Or native elements.
     // Better to check if BottomNavigation module is rendered.

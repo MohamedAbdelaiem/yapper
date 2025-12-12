@@ -9,12 +9,12 @@ jest.mock('@/src/context/ThemeContext', () => {
   return {
     ...original,
     useTheme: jest.fn(),
-    ThemeProvider: ({ children }: any) => <>{children}</>,
+    ThemeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
   };
 });
 
 // Real theme object for styles
-import { lightTheme } from '@/src/constants/theme';
+import { colors } from '@/src/constants/theme';
 
 describe('ThemeSettingsSheet', () => {
   const mockSetThemeMode = jest.fn();
@@ -24,7 +24,7 @@ describe('ThemeSettingsSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useTheme as jest.Mock).mockReturnValue({
-      theme: lightTheme,
+      theme: colors.light,
       isDark: false,
       useDeviceSettings: false,
       setThemeMode: mockSetThemeMode,

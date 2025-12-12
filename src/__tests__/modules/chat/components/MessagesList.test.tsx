@@ -4,22 +4,33 @@ import { render, screen } from '@testing-library/react-native';
 import React from 'react';
 
 // Mocks
-jest.mock('@shopify/flash-list', () => ({
-  FlashList: ({ data, renderItem, ListEmptyComponent }: any) => (
-    <>
-      <div testID="flash-list-mock">
-        {data.map((item: any) => (
-          <div key={item.id}>{renderItem({ item })}</div>
-        ))}
-      </div>
-      {data.length === 0 && ListEmptyComponent && ListEmptyComponent()}
-    </>
-  ),
-}));
+jest.mock('@shopify/flash-list', () => {
+  const { View } = require('react-native');
+  return {
+    FlashList: ({
+      data,
+      renderItem,
+      ListEmptyComponent,
+    }: {
+      data: any[];
+      renderItem: any;
+      ListEmptyComponent: any;
+    }) => (
+      <>
+        <View testID="flash-list-mock">
+          {data.map((item) => (
+            <View key={item.id}>{renderItem({ item })}</View>
+          ))}
+        </View>
+        {data.length === 0 && ListEmptyComponent && ListEmptyComponent()}
+      </>
+    ),
+  };
+});
 
 jest.mock('@/src/modules/chat/components/MessageItem', () => {
   const { Text, View } = require('react-native');
-  return ({ chat }: any) => (
+  return ({ chat }: { chat: any }) => (
     <View testID={`message_item_${chat.id}`}>
       <Text>{chat.lastMessage?.content}</Text>
     </View>
@@ -42,7 +53,7 @@ describe('MessagesList', () => {
   ];
 
   it('should render chats', () => {
-    renderWithTheme(<MessagesList chats={mockChats as any} />);
+    renderWithTheme(<MessagesList chats={mockChats as any[]} />);
     expect(screen.getByText('Hi')).toBeTruthy();
     expect(screen.getByText('Hello')).toBeTruthy();
   });

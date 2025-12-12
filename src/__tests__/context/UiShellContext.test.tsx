@@ -9,7 +9,6 @@ describe('UiShellContext', () => {
     });
 
     expect(result.current.isSideMenuOpen).toBe(false);
-    expect(result.current.themeSettingsSheetRef).toBeNull();
   });
 
   it('should toggle side menu', () => {

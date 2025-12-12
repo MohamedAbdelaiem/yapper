@@ -2,7 +2,7 @@ import { useSocketConnection } from '@/src/hooks/useSocketConnection';
 import { socketService } from '@/src/services/socketService';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import { renderHook } from '@testing-library/react-native';
-import { AppState } from 'react-native';
+import { AppState, AppStateStatus } from 'react-native';
 
 // Mock dependencies
 jest.mock('@/src/services/socketService', () => ({
@@ -63,7 +63,7 @@ describe('useSocketConnection', () => {
     (useAuthStore as unknown as jest.Mock).mockImplementation((selector) =>
       selector({ isInitialized: true, user: null }),
     );
-    rerender();
+    rerender({});
 
     expect(socketService.disconnect).toHaveBeenCalled();
   });
@@ -87,11 +87,13 @@ describe('useSocketConnection', () => {
     );
 
     // Mock AppState.addEventListener
-    let listener: (state: string) => void;
-    jest.spyOn(AppState, 'addEventListener').mockImplementation(((_type: string, handler: (state: string) => void) => {
-      listener = handler;
-      return { remove: jest.fn() };
-    }) as any);
+    let listener: (state: AppStateStatus) => void;
+    jest
+      .spyOn(AppState, 'addEventListener')
+      .mockImplementation((_type: string, handler: (state: AppStateStatus) => void) => {
+        listener = handler;
+        return { remove: jest.fn() } as unknown as import('react-native').NativeEventSubscription;
+      });
 
     renderHook(() => useSocketConnection());
 

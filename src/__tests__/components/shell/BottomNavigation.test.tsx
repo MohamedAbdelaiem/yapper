@@ -5,7 +5,7 @@ import { useUnreadMessagesStore } from '@/src/store/useUnreadMessagesStore';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { usePathname, useRouter } from 'expo-router';
 import React from 'react';
-import { Animated } from 'react-native';
+import { Animated, View } from 'react-native';
 
 // Mocks
 jest.mock('expo-router', () => ({
@@ -18,7 +18,7 @@ jest.mock('@/src/store/useUnreadMessagesStore', () => ({
 }));
 
 jest.mock('expo-blur', () => ({
-  BlurView: ({ children }: any) => <div testID="blur-view">{children}</div>,
+  BlurView: ({ children }: { children: React.ReactNode }) => <View testID="blur-view">{children}</View>,
 }));
 
 // Mock UiShellContext methods

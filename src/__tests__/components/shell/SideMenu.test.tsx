@@ -5,7 +5,7 @@ import { useAuthStore } from '@/src/store/useAuthStore';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { Animated } from 'react-native';
+import { Animated, View } from 'react-native';
 
 // Mocks
 jest.mock('expo-router', () => ({
@@ -18,7 +18,7 @@ jest.mock('@/src/store/useAuthStore', () => ({
 }));
 
 jest.mock('expo-blur', () => ({
-  BlurView: ({ children }: any) => <div testID="blur-view">{children}</div>,
+  BlurView: ({ children }: { children: React.ReactNode }) => <View testID="blur-view">{children}</View>,
 }));
 
 // Mock UiShellContext methods

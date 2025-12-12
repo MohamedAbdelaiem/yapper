@@ -4,10 +4,11 @@ import { UiShellProvider, useUiShell } from '@/src/context/UiShellContext';
 import { useAuthStore } from '@/src/store/useAuthStore';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
+import { View } from 'react-native';
 
 // Mocks
 jest.mock('expo-blur', () => ({
-  BlurView: ({ children, style }: { children: React.ReactNode; style: any }) => <div style={style}>{children}</div>,
+  BlurView: ({ children, style }: { children: React.ReactNode; style: any }) => <View style={style}>{children}</View>,
 }));
 
 jest.mock('@/src/store/useAuthStore', () => ({
@@ -74,12 +75,12 @@ describe('AppBar', () => {
   });
 
   it('should render right element', () => {
-    renderWithProviders(<AppBar rightElement={<div testID="right-elem">Right</div>} />);
+    renderWithProviders(<AppBar rightElement={<View testID="right-elem">Right</View>} />);
     expect(screen.getByTestId('right-elem')).toBeTruthy();
   });
 
   it('should render tab view if provided', () => {
-    renderWithProviders(<AppBar tabView={<div testID="tab-view">Tabs</div>} />);
+    renderWithProviders(<AppBar tabView={<View testID="tab-view">Tabs</View>} />);
     expect(screen.getByTestId('tab-view')).toBeTruthy();
   });
 });

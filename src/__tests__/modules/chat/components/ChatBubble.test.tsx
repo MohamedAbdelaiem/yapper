@@ -20,7 +20,11 @@ describe('ChatBubble', () => {
     content: 'Hello World',
     senderId: 'u1',
     createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
     reactions: [],
+    messageType: 'text' as const,
+    replyTo: null,
+    isRead: true,
   };
 
   const mockOnReply = jest.fn();

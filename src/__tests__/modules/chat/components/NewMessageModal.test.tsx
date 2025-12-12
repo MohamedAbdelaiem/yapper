@@ -4,17 +4,20 @@ import { fireEvent, render, screen } from '@testing-library/react-native';
 import React from 'react';
 
 // Mocks
-jest.mock('@shopify/flash-list', () => ({
-  FlashList: ({ data, renderItem }: any) => (
-    <>
-      <div testID="flash-list-mock">
-        {data.map((item: any) => (
-          <div key={item.userId}>{renderItem({ item })}</div>
-        ))}
-      </div>
-    </>
-  ),
-}));
+jest.mock('@shopify/flash-list', () => {
+  const { View } = require('react-native');
+  return {
+    FlashList: ({ data, renderItem }: { data: any[]; renderItem: any }) => (
+      <>
+        <View testID="flash-list-mock">
+          {data.map((item) => (
+            <View key={item.userId}>{renderItem({ item })}</View>
+          ))}
+        </View>
+      </>
+    ),
+  };
+});
 
 jest.mock('@tanstack/react-query', () => {
   const original = jest.requireActual('@tanstack/react-query');
