@@ -1,5 +1,6 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
+import { useNotificationStore } from '@/src/store/useNotificationStore';
 import { useUnreadMessagesStore } from '@/src/store/useUnreadMessagesStore';
 import { BlurView } from 'expo-blur';
 import { usePathname, useRouter } from 'expo-router';
@@ -9,14 +10,12 @@ import { useTranslation } from 'react-i18next';
 import { Animated, I18nManager, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useUiShell } from '../../context/UiShellContext';
-import GrokLogo from '../icons/GrokLogo';
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView);
 
 const items = [
   { key: 'home', label: 'Home', path: '/(protected)', icon: Home },
   { key: 'search', label: 'Search', path: '/(protected)/explore', icon: Search },
-  { key: 'grok', label: 'Grok', path: '/(protected)/grok', icon: GrokLogo },
   { key: 'notifications', label: 'Notifications', path: '/(protected)/notifications', icon: Bell },
   { key: 'messages', label: 'Messages', path: '/(protected)/messages', icon: Mail },
 ];
@@ -35,7 +34,9 @@ const BottomNavigation: React.FC<IBottomNavigationProps> = (props) => {
   const router = useRouter();
   const pathname = usePathname();
   const unreadChatIds = useUnreadMessagesStore((state) => state.unreadChatIds);
-  const unreadCount = unreadChatIds.size;
+  const unreadMessagesCount = unreadChatIds.size;
+
+  const unreadNotificationsCount = useNotificationStore((state) => state.unreadCount);
 
   // Sync activeTab with current route
   useEffect(() => {
@@ -107,9 +108,16 @@ const BottomNavigation: React.FC<IBottomNavigationProps> = (props) => {
                   size={theme.iconSizes.icon}
                   style={styles.iconSpacing}
                 />
-                {item.key === 'messages' && unreadCount > 0 && (
+                {item.key === 'notifications' && unreadNotificationsCount > 0 && (
                   <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                    <Text style={styles.badgeText}>
+                      {unreadNotificationsCount > 99 ? '99+' : unreadNotificationsCount}
+                    </Text>
+                  </View>
+                )}
+                {item.key === 'messages' && unreadMessagesCount > 0 && (
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{unreadMessagesCount > 99 ? '99+' : unreadMessagesCount}</Text>
                   </View>
                 )}
               </View>
