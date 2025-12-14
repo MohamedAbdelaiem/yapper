@@ -95,6 +95,22 @@ const EditProfileModal: React.FC<IEditProfileModalProps> = ({
   };
 
   const handleDateConfirm = (date: Date) => {
+    // Calculate age
+    const today = new Date();
+    let age = today.getFullYear() - date.getFullYear();
+    const monthDiff = today.getMonth() - date.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < date.getDate())) {
+      age--;
+    }
+
+    // Validate minimum age of 13
+    if (age < 13) {
+      Alert.alert(t('profile.editModal.ageError'), t('profile.editModal.ageErrorMessage'), [{ text: t('common.ok') }]);
+      setDatePickerVisible(false);
+      return;
+    }
+
     const formattedDate = date.toISOString().split('T')[0];
     setUpdatedUser({ ...updatedUser, birthday: formattedDate });
     setDatePickerVisible(false);
