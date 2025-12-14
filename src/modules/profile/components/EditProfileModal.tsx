@@ -63,6 +63,7 @@ const EditProfileModal: React.FC<IEditProfileModalProps> = ({
   }, [visible, imageUri, bannerUri]);
 
   const handleAvatarChange = () => {
+    const isDefaultAvatar = localAvatarUri === DEFAULT_AVATAR_URL;
     showImagePickerOptions(
       true,
       (uri) => {
@@ -73,10 +74,12 @@ const EditProfileModal: React.FC<IEditProfileModalProps> = ({
         setLocalAvatarUri(DEFAULT_AVATAR_URL);
         setNewAvatarUri(DEFAULT_AVATAR_URL);
       },
+      !isDefaultAvatar,
     );
   };
 
   const handleBannerChange = () => {
+    const isDefaultBanner = localBannerUri === DEFAULT_BANNER_URL;
     showImagePickerOptions(
       false,
       (uri) => {
@@ -87,6 +90,7 @@ const EditProfileModal: React.FC<IEditProfileModalProps> = ({
         setLocalBannerUri(DEFAULT_BANNER_URL);
         setNewCoverUri(DEFAULT_BANNER_URL);
       },
+      !isDefaultBanner,
     );
   };
 
@@ -223,6 +227,7 @@ const EditProfileModal: React.FC<IEditProfileModalProps> = ({
         {/* Banner */}
         <TouchableOpacity onPress={handleBannerChange} testID="profile_edit_modal_banner_button">
           <Image
+            key={localBannerUri}
             source={{ uri: localBannerUri }}
             style={editModalStyles.banner}
             testID="profile_edit_modal_banner_image"
@@ -236,6 +241,7 @@ const EditProfileModal: React.FC<IEditProfileModalProps> = ({
           <View style={editModalStyles.avatarContainer}>
             <TouchableOpacity onPress={handleAvatarChange} testID="profile_edit_modal_avatar_button">
               <Image
+                key={localAvatarUri}
                 source={{
                   uri: localAvatarUri,
                 }}
