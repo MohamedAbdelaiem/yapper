@@ -44,8 +44,7 @@
           "backgroundColor": "#000000"
         }
       },
-      "softwareKeyboardLayoutMode": "pan",
-      "googleServicesFile": "./google-services.json"
+      "softwareKeyboardLayoutMode": "pan"
     },
     "web": {
       "output": "static",

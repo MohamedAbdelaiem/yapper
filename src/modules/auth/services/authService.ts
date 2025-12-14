@@ -51,21 +51,6 @@ export const logout = async (): Promise<void> => {
   }
 };
 
-export const logOutAll = async (): Promise<void> => {
-  try {
-    const refreshToken = await getRefreshToken();
-    if (refreshToken) {
-      try {
-        await api.post('/auth/logout-all', { refresh_token: refreshToken });
-      } catch (error) {
-        console.warn('LogoutAll API call failed:', extractErrorMessage(error));
-      }
-    }
-  } catch (error) {
-    throw new Error(extractErrorMessage(error));
-  }
-};
-
 /* -------------------------------------------------------------------------- */
 /*                               Google Sign-In                               */
 /* -------------------------------------------------------------------------- */

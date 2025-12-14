@@ -33,23 +33,6 @@ export const AccountInformationScreen: React.FC = () => {
     ]);
   };
 
-  const handleLogoutAll = () => {
-    Alert.alert(t('settings.account_info.logout_title'), t('settings.account_info.logout_all_message'), [
-      {
-        text: t('settings.common.cancel'),
-        style: 'cancel',
-      },
-      {
-        text: t('settings.account_info.logout_all_button'),
-        style: 'destructive',
-        onPress: async () => {
-          await logout(true);
-          replace('/(auth)/landing-screen');
-        },
-      },
-    ]);
-  };
-
   const InfoRow = ({ label, value, onPress }: { label: string; value: string; onPress?: () => void }) => (
     <TouchableOpacity
       style={styles.infoRow}
@@ -120,15 +103,6 @@ export const AccountInformationScreen: React.FC = () => {
               testID="Logout_Button"
             >
               <Text style={styles.logoutText}>{t('settings.account_info.logout_button')}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.logoutButton}
-              onPress={handleLogoutAll}
-              accessibilityLabel="Log out All"
-              testID="Logout_All_Button"
-            >
-              <Text style={styles.logoutText}>{t('settings.account_info.logout_all_button')}</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>

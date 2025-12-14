@@ -10,7 +10,7 @@ import {
 } from '@/src/utils/secureStorage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { logout, logOutAll } from '../modules/auth/services/authService';
+import { logout } from '../modules/auth/services/authService';
 import { getMyUser } from '../modules/profile/services/profileService';
 import { IGetMyUserResponse } from '../modules/profile/types';
 import { socketService } from '../services/socketService';
@@ -119,6 +119,10 @@ export const useAuthStore = create<IAuthState>((set) => ({
       }
       set({ user, token });
       tokenRefreshService.start();
+      if (user.language && user.language !== i18n.language) {
+        await changeLanguage(user.language);
+        await AsyncStorage.setItem('app-language', user.language);
+      }
     } catch (err) {
       console.error('Login error:', err);
       set({ user: null, token: null });
@@ -196,18 +200,14 @@ export const useAuthStore = create<IAuthState>((set) => ({
     }),
 
   /** Logout & cleanup */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   logout: async (all: boolean = false) => {
     try {
       tokenRefreshService.stop();
-      socketService.disconnect();
       await deleteToken();
-      await deleteRefreshToken();
-      if (all) {
-        await logOutAll();
-      } else {
-        await logout();
-      }
       socketService.disconnect();
+      await logout();
+      await deleteRefreshToken();
     } catch (err) {
       console.error('Logout error:', err);
     } finally {
