@@ -1,6 +1,7 @@
 {
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "ok": "OK"
   },
   "home": {
     "title": "Home Screen",
