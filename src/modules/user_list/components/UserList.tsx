@@ -64,7 +64,7 @@ const createStyles = (theme: Theme) =>
   });
 
 const UserList: React.FC<UserListProps> = (props) => {
-  const { onUserPress, renderAction, autoLoad = true, topSpacing, bottomSpacing } = props;
+  const { onUserPress, renderAction, autoLoad = true } = props;
   const { theme } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);

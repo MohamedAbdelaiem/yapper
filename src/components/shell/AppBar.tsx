@@ -49,25 +49,26 @@ const AppBar: React.FC<IAppBarProps> = (props) => {
           <View style={styles.headerContainer}>
             {!hideLeftElement && (
               <View style={styles.sideContainer}>
-                {(leftElement ?? !isSideMenuOpen) ? (
-                  <Pressable
-                    onPress={toggleSideMenu}
-                    accessibilityLabel={t('accessibility.openMenu')}
-                    testID="appbar_menu_button"
-                    accessibilityRole="button"
-                    style={styles.avatarButton}
-                  >
-                    <View style={styles.avatarBackground}>
-                      <Image
-                        source={{ uri: user?.avatarUrl || DEFAULT_AVATAR_URL }}
-                        style={styles.avatar}
-                        resizeMode="cover"
-                      />
-                    </View>
-                  </Pressable>
-                ) : (
-                  <View style={styles.avatarButton} />
-                )}
+                {leftElement ??
+                  (!isSideMenuOpen ? (
+                    <Pressable
+                      onPress={toggleSideMenu}
+                      accessibilityLabel={t('accessibility.openMenu')}
+                      testID="appbar_menu_button"
+                      accessibilityRole="button"
+                      style={styles.avatarButton}
+                    >
+                      <View style={styles.avatarBackground}>
+                        <Image
+                          source={{ uri: user?.avatarUrl || DEFAULT_AVATAR_URL }}
+                          style={styles.avatar}
+                          resizeMode="cover"
+                        />
+                      </View>
+                    </Pressable>
+                  ) : (
+                    <View style={styles.avatarButton} />
+                  ))}
               </View>
             )}
 

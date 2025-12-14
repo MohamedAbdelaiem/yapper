@@ -83,7 +83,7 @@ const SingleTweet: React.FC<ITweetProps> = (props) => {
   };
 
   const handleTweetPress = () => {
-    router.push({
+    navigate({
       pathname: '/(protected)/tweets/[tweetId]',
       params: {
         tweetId: tweet.tweetId,

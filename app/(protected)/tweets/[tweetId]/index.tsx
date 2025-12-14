@@ -5,12 +5,13 @@ import AppBar from '@/src/components/shell/AppBar';
 import { Theme } from '@/src/constants/theme';
 import { MediaViewerProvider } from '@/src/context/MediaViewerContext';
 import { useTheme } from '@/src/context/ThemeContext';
+import { useNavigation } from '@/src/hooks/useNavigation';
 import MediaViewerModal from '@/src/modules/tweets/components/MediaViewerModal';
 import RepliesContainer from '@/src/modules/tweets/containers/RepliesContainer';
 import { useTweetActions } from '@/src/modules/tweets/hooks/useTweetActions';
 import useTweetDropDownMenu from '@/src/modules/tweets/hooks/useTweetDropDownMenu';
 import { useAuthStore } from '@/src/store/useAuthStore';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { ArrowLeft, ArrowRight, MoreHorizontal, Trash2 } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -19,12 +20,13 @@ import { Alert, I18nManager, Pressable, StyleSheet, Text, View } from 'react-nat
 const TweetDetailsScreen = () => {
   const { tweetId, tweetUserId } = useLocalSearchParams<{ tweetId: string; tweetUserId: string }>();
   const { theme } = useTheme();
+  const { navigate, goBack } = useNavigation();
   const { t } = useTranslation();
   const styles = createStyles(theme);
   const user = useAuthStore((state) => state.user);
   const isRTL = I18nManager.isRTL;
   const handleGrokPress = () => {
-    router.push({
+    navigate({
       pathname: '/(protected)/tweet-summary',
       params: { tweetId: tweetId },
     });
@@ -51,7 +53,7 @@ const TweetDetailsScreen = () => {
 
   const handleViewPostInteractions = (tweetId: string, ownerId: string) => {
     // TODO: Implement view post interactions functionality
-    router.push({
+    navigate({
       pathname: '/(protected)/tweets/[tweetId]/activity',
       params: {
         tweetId: tweetId,
@@ -85,7 +87,7 @@ const TweetDetailsScreen = () => {
           children={<Text style={styles.appBarTitle}>{t('tweets.full_tweet.title')}</Text>}
           leftElement={
             <Pressable
-              onPress={() => router.back()}
+              onPress={() => goBack()}
               style={styles.headerButton}
               accessibilityLabel="Go back"
               accessibilityRole="button"

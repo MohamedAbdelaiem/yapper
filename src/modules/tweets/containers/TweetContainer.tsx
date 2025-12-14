@@ -71,15 +71,6 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
     ]);
   };
 
-  const handleTweetPress = (tweetId: string) => {
-    navigate({
-      pathname: '/(protected)/tweets/[tweetId]',
-      params: {
-        tweetId: tweetId,
-      },
-    });
-  };
-
   const handleMentionPress = (username: string) => {
     navigate({
       pathname: '/(protected)/(profile)/[id]',
