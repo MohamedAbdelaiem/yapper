@@ -27,11 +27,13 @@ export interface IParticipant {
 export interface ILastMessage {
   id: string;
   content: string;
-  messageType: 'text' | 'reply' | 'image' | 'video';
+  messageType: 'text' | 'reply' | 'image' | 'video' | 'voice';
   senderId: string;
   createdAt: string;
   isRead: boolean;
   imageUrl?: string | null;
+  voiceNoteUrl?: string | null;
+  voiceNoteDuration?: string | null;
 }
 
 export interface IChat {
@@ -70,19 +72,24 @@ export interface IMessageReaction {
   emoji: string;
   count: number;
   reactedByMe: boolean;
+  reactedByOther?: boolean;
 }
 
 export interface IChatMessageItem {
   id: string;
   content: string;
-  messageType: 'text' | 'reply' | 'image' | 'video';
+  messageType: 'text' | 'reply' | 'image' | 'video' | 'voice';
   replyTo: string | null;
   replyToMessage?: {
     id: string;
     content: string;
     senderId: string;
+    messageType?: string;
+    voiceNoteUrl?: string | null;
   } | null;
   imageUrl?: string | null;
+  voiceNoteUrl?: string | null;
+  voiceNoteDuration?: number | string | null;
   reactions?: IMessageReaction[];
   isRead: boolean;
   createdAt: string;
@@ -96,6 +103,7 @@ export interface IReplyContext {
   content: string;
   senderName: string;
   hasImage?: boolean;
+  hasVoice?: boolean;
 }
 
 export interface IChatMessagesData {

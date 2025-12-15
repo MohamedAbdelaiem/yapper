@@ -1,6 +1,7 @@
 {
   "common": {
-    "loading": "جاري التحميل..."
+    "loading": "جاري التحميل...",
+    "ok": "حسناً"
   },
   "home": {
     "title": "الشاشة الرئيسية",
@@ -67,6 +68,7 @@
       "receivedMessage": "رسالة مستلمة",
       "replyingTo": "الرد على {{name}}",
       "photo": "صورة",
+      "voiceMessage": "رسالة صوتية",
       "unknown": "غير معروف"
     },
     "reactions": {
@@ -116,6 +118,13 @@
     "messages": "الرسائل",
     "profile": "الملف الشخصي",
     "title": "الشاشة الرئيسية"
+  },
+  "notifications": {
+    "title": "الإشعارات",
+    "tabs": {
+      "all": "الكل",
+      "mentions": "الإشارات"
+    }
   },
   "welcome": {
     "title": "مرحباً بك في Yapper",
@@ -464,6 +473,8 @@
   "profile": {
     "editProfile": "تعديل الملف الشخصي",
     "blocked": "محظور",
+    "blockedUser": "@{{username}} محظور",
+    "blockedUserDescription": "هل أنت متأكد أنك تريد عرض هذه المنشورات؟ عرض المنشورات لن يلغي حظر @{{username}}.",
     "viewPosts": "عرض المنشورات",
     "follow": "متابعة",
     "followBack": "متابعة متبادلة",
@@ -504,7 +515,9 @@
       "bioPlaceholder": "أضف سيرة ذاتية لملفك الشخصي",
       "locationPlaceholder": "أضف موقعك",
       "websitePlaceholder": "أضف موقعك الإلكتروني",
-      "birthdayPlaceholder": "أضف تاريخ ميلادك"
+      "birthdayPlaceholder": "أضف تاريخ ميلادك",
+      "ageError": "قيد العمر",
+      "ageErrorMessage": "يجب أن يكون عمرك 13 عامًا على الأقل لاستخدام هذه الخدمة."
     },
     "actions": {
       "edit": "تعديل",
@@ -705,6 +718,7 @@
       "update_failed_message": "فشل تحديث اللغة. يرجى المحاولة مرة أخرى."
     },
     "mute_block": {
+      "title": "الكتم والحظر",
       "description": "إدارة الحسابات والكلمات والإشعارات التي قمت بكتمها أو حظرها.",
       "blocked_accounts": "الحسابات المحظورة",
       "muted_accounts": "الحسابات المكتومة",
@@ -758,7 +772,7 @@
       "title": "المنشور",
       "views": "مرات مشاهدة"
     },
-    "replyingTo": "الرد على",
+    "replyingTo": "ردا على",
     "deleteConfirmation": {
       "title": "حذف المنشور",
       "message": "هل أنت متأكد أنك تريد حذف هذا المنشور؟",

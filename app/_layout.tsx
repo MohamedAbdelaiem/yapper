@@ -5,7 +5,8 @@ import { useAuthStore } from '@/src/store/useAuthStore';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import * as Notifications from 'expo-notifications';
+import { router, Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import React, { useEffect, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
@@ -25,6 +26,15 @@ const AuthInitializer: React.FC<IAuthInitializerProps> = ({ children }) => {
   return <>{children}</>;
 };
 
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
+
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -39,6 +49,22 @@ export default function RootLayout() {
     ...Ionicons.font,
     ...MaterialCommunityIcons.font,
   });
+  useEffect(() => {
+    const responseListener = Notifications.addNotificationResponseReceivedListener((response) => {
+      const data = response.notification.request.content.data;
+      const tweetId = data.tweet_id as string;
+      const userId = data.user_id as string;
+      if (tweetId) {
+        router.push({ pathname: '/(protected)/tweets/[tweetId]', params: { tweetId: tweetId } });
+      }
+      if (userId) {
+        router.push({ pathname: '/(protected)/(profile)/[id]', params: { id: userId } });
+      }
+    });
+    return () => {
+      responseListener.remove();
+    };
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded) {

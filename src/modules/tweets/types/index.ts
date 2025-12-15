@@ -1,15 +1,16 @@
 import { IApiResponse } from '@/src/types/api';
 import { IUser } from '@/src/types/user';
 
-type TweetType = 'tweet' | 'reply' | 'repost' | 'quote';
-
+export type TweetType = 'tweet' | 'reply' | 'repost' | 'quote';
 interface ITweet {
   tweetId: string;
   type: TweetType;
+  postType?: 'tweet' | 'reply' | 'quote';
   parentTweet?: ITweet;
   conversationTweet?: ITweet;
   replies?: ITweet[];
   content: string;
+  mentions: string[]; // Array of mentioned usernames
   images: string[];
   videos: string[];
   likesCount: number;
@@ -22,7 +23,7 @@ interface ITweet {
   isReposted: boolean;
   isBookmarked: boolean;
   createdAt: string;
-  updatedAt: string;
+  updatedAt?: string;
   user: IUser;
   repostedBy?: {
     repostId: string;

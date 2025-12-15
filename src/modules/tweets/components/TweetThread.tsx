@@ -14,18 +14,19 @@ import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-nativ
 import { DEFAULT_AVATAR_URI } from '../../profile/utils/edit-profile.utils';
 import useTweetDropDownMenu from '../hooks/useTweetDropDownMenu';
 import { ITweet } from '../types';
+import { parseTweetBody } from '../utils/tweetParser';
 import ActionsRow from './ActionsRow';
 import CreatePostModal from './CreatePostModal';
 import ParentTweet from './ParentTweet';
 import RepostIndicator from './RepostIndicator';
 import RepostOptionsModal from './RepostOptionsModal';
+import TweetContent from './TweetContent';
 import TweetMedia from './TweetMedia';
 import UserInfoRow from './UserInfoRow';
 
 interface ITweetProps {
   tweet: ITweet;
   onDeletePress: (tweetId: string) => void;
-  onTweetPress: (tweetId: string) => void;
   onAvatarPress: (userId: string) => void;
   onReply: (tweetId: string, content: string) => void;
   onQuote: (tweetId: string, content: string) => void;
@@ -35,6 +36,9 @@ interface ITweetProps {
   onViewPostInteractions: (tweetId: string, ownerId: string) => void;
   onShare: () => void;
   isVisible?: boolean;
+  showThread: boolean;
+  onMentionPress: (username: string) => void;
+  onHashtagPress: (hashtag: string) => void;
 }
 
 const SingleTweet: React.FC<ITweetProps> = (props) => {
@@ -49,8 +53,10 @@ const SingleTweet: React.FC<ITweetProps> = (props) => {
     onShare,
     onDeletePress,
     isVisible = true,
-    onTweetPress,
     onAvatarPress,
+    showThread,
+    onMentionPress,
+    onHashtagPress,
   } = props;
   const { theme } = useTheme();
   const styles = useMemo(() => createStyles(theme), [theme]);
@@ -76,6 +82,16 @@ const SingleTweet: React.FC<ITweetProps> = (props) => {
     setIsCreatePostModalVisible(true);
   };
 
+  const handleTweetPress = () => {
+    router.push({
+      pathname: '/(protected)/tweets/[tweetId]',
+      params: {
+        tweetId: tweet.tweetId,
+        tweetUserId: tweet.user.id,
+      },
+    });
+  };
+
   const [isCreatePostModalVisible, setIsCreatePostModalVisible] = useState(false);
 
   const [createPostType, setCreatePostType] = useState<'tweet' | 'quote' | 'reply'>('tweet');
@@ -84,6 +100,7 @@ const SingleTweet: React.FC<ITweetProps> = (props) => {
   const handleRepostPress = () => {
     bottomSheetModalRef.current?.present();
   };
+  const segments = useMemo(() => parseTweetBody(tweet.content, tweet.mentions), [tweet.content, tweet.mentions]);
 
   const menuItems: DropdownMenuItem[] = [
     {
@@ -102,13 +119,10 @@ const SingleTweet: React.FC<ITweetProps> = (props) => {
       icon: <Trash2 size={theme.iconSizes.md} stroke={theme.colors.text.primary} />,
     });
   }
+
   return (
-    <Pressable
-      accessibilityLabel="tweet_container_main"
-      testID="tweet_container_main"
-      onPress={() => onTweetPress(tweet.tweetId)}
-    >
-      {tweet.repostedBy && (
+    <Pressable accessibilityLabel="tweet_container_main" testID="tweet_container_main" onPress={handleTweetPress}>
+      {tweet.repostedBy && tweet.postType !== 'reply' && (
         <RepostIndicator repostById={tweet.repostedBy?.id} repostedByName={tweet.repostedBy?.name} />
       )}
       <View style={styles.tweetContainer}>
@@ -147,14 +161,18 @@ const SingleTweet: React.FC<ITweetProps> = (props) => {
               </Pressable>
             </View>
           </View>
-          <View style={styles.tweetContent}>
-            <Text style={styles.tweetText} accessibilityLabel="tweet_content_text" testID="tweet_content_text">
-              {tweet.content}
-            </Text>
-          </View>
+          {(tweet.type === 'reply' || tweet.postType === 'reply') && tweet.parentTweet && !showThread && (
+            <View style={styles.replyingToContainer}>
+              <Text style={styles.replyingTo}>{t('tweets.replyingTo')}</Text>
+              <Pressable onPress={() => onAvatarPress(tweet.parentTweet!.user.id)}>
+                <Text style={styles.mention}>@{tweet.parentTweet.user.username}</Text>
+              </Pressable>
+            </View>
+          )}
+          <TweetContent segments={segments} onMentionPress={onMentionPress} onHashtagPress={onHashtagPress} />
           <TweetMedia images={tweet.images} videos={tweet.videos} tweetId={tweet.tweetId} />
 
-          {tweet.parentTweet && !tweet.conversationTweet && (
+          {(tweet.postType === 'quote' || tweet.type === 'quote') && tweet.parentTweet && (
             <View style={{ marginTop: theme.spacing.xs }}>
               <ParentTweet tweet={tweet.parentTweet} isVisible={isVisible} />
             </View>
@@ -216,7 +234,12 @@ const TweetThread: React.FC<ITweetProps> = (props) => {
     );
   }
 
-  if (props.tweet.parentTweet && props.tweet.conversationTweet) {
+  if (
+    (props.tweet.postType === 'reply' || props.tweet.type === 'reply') &&
+    props.tweet.parentTweet &&
+    props.tweet.conversationTweet &&
+    props.showThread
+  ) {
     return (
       <View style={styles.conversationContainer}>
         <View style={{ position: 'relative', paddingBottom: theme.spacing.lg, gap: theme.spacing.lg }}>
@@ -293,5 +316,21 @@ const createStyles = (theme: Theme) =>
       bottom: theme.spacing.xs,
       zIndex: -1,
       width: 2,
+    },
+    replyingTo: {
+      fontFamily: theme.typography.fonts.regular,
+      fontSize: theme.typography.sizes.sm,
+      color: theme.colors.text.secondary,
+      flexShrink: 2,
+    },
+    mention: {
+      fontFamily: theme.typography.fonts.regular,
+      fontSize: theme.typography.sizes.sm,
+      color: theme.colors.accent.bookmark,
+    },
+    replyingToContainer: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: theme.spacing.xs,
     },
   });

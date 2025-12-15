@@ -1,4 +1,5 @@
 import { ICategoryTweetsResponse, IExploreResponse } from '@/src/modules/explore/types';
+import { ISearchPostsResponse } from '@/src/modules/search/types';
 import { InfiniteData } from '@tanstack/react-query';
 import { ITweet, ITweets } from '../types';
 
@@ -147,6 +148,53 @@ export const updateCategoryPostsCache = (
           ...page.data,
           tweets: page.data.tweets.map((tweet) => updateTweetDeep(tweet, tweetId, updater)),
         },
+      };
+    }),
+  };
+};
+
+export const updateSearchPostsCache = (
+  oldData: InfiniteData<ISearchPostsResponse> | undefined,
+  tweetId: string,
+  updater: (tweet: ITweet) => ITweet,
+): InfiniteData<ISearchPostsResponse> | undefined => {
+  if (!oldData?.pages) return oldData;
+
+  return {
+    ...oldData,
+    pages: oldData.pages.map((page) => {
+      if (!page?.data?.data) return page;
+
+      return {
+        ...page,
+        data: {
+          ...page.data,
+          data: page.data.data.map((tweet) => updateTweetDeep(tweet, tweetId, updater)),
+        },
+      };
+    }),
+  };
+};
+
+/**
+ * Update tweets in tweet-quotes infinite cache
+ * Structure: InfiniteData<{ data: ITweet[], count, parent?, nextCursor, hasMore }>
+ */
+export const updateTweetQuotesCache = (
+  oldData: InfiniteData<{ data: ITweet[]; count?: number; nextCursor?: string; hasMore: boolean }> | undefined,
+  tweetId: string,
+  updater: (tweet: ITweet) => ITweet,
+): InfiniteData<{ data: ITweet[]; count?: number; nextCursor?: string; hasMore: boolean }> | undefined => {
+  if (!oldData?.pages) return oldData;
+
+  return {
+    ...oldData,
+    pages: oldData.pages.map((page) => {
+      if (!page?.data) return page;
+
+      return {
+        ...page,
+        data: page.data.map((tweet) => updateTweetDeep(tweet, tweetId, updater)),
       };
     }),
   };

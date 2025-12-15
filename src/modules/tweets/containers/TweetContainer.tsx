@@ -14,11 +14,13 @@ type TweetContainerProps =
       tweet: ITweet;
       tweetId?: never;
       isVisible?: boolean;
+      showThread: boolean;
     }
   | {
       tweet?: never;
       tweetId: string;
       isVisible?: boolean;
+      showThread: boolean;
     };
 
 const TweetContainer: React.FC<TweetContainerProps> = (props) => {
@@ -66,11 +68,21 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
       },
     ]);
   };
-  const handleTweetPress = (tweetId: string) => {
+
+  const handleMentionPress = (username: string) => {
     router.push({
-      pathname: '/(protected)/tweets/[tweetId]',
+      pathname: '/(protected)/(profile)/[id]',
       params: {
-        tweetId: tweetId,
+        id: username,
+      },
+    });
+  };
+
+  const handleHashtagPress = (hashtag: string) => {
+    router.push({
+      pathname: '/(protected)/search/search-results',
+      params: {
+        query: hashtag,
       },
     });
   };
@@ -105,7 +117,6 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
           <>
             <FullTweet
               tweet={fetchedTweet}
-              onDeletePress={handleDeletePress}
               onAvatarPress={handleAvatarPress}
               onReply={handleReply}
               onQuote={handleQuote}
@@ -114,6 +125,8 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
               onBookmark={handleBookmark}
               onViewPostInteractions={handleViewPostInteractions}
               onShare={handleShare}
+              onMentionPress={handleMentionPress}
+              onHashtagPress={handleHashtagPress}
             />
           </>
         )}
@@ -127,7 +140,6 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
         <TweetThread
           tweet={props.tweet}
           onDeletePress={handleDeletePress}
-          onTweetPress={handleTweetPress}
           onAvatarPress={handleAvatarPress}
           onReply={handleReply}
           onQuote={handleQuote}
@@ -137,6 +149,9 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
           onViewPostInteractions={handleViewPostInteractions}
           onShare={handleShare}
           isVisible={props.isVisible}
+          showThread={props.showThread}
+          onMentionPress={handleMentionPress}
+          onHashtagPress={handleHashtagPress}
         />
       </>
     );

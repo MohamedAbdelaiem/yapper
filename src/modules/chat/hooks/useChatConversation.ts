@@ -43,7 +43,7 @@ interface UseChatConversationReturn {
 
   // Actions
   handleTextChange: (text: string) => void;
-  handleSend: (imageUrl?: string | null) => void;
+  handleSend: (imageUrl?: string | null, voiceNoteUrl?: string | null, voiceNoteDuration?: string | null) => void;
   handleLoadMore: () => void;
   handleReplyToMessage: (message: IChatMessageItem, senderName: string) => void;
   handleCancelReply: () => void;
@@ -142,6 +142,8 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
         messageType: data.message.message_type,
         replyTo: data.message.reply_to_message_id || null,
         replyToMessage,
+        voiceNoteUrl: data.message.voice_note_url || null,
+        voiceNoteDuration: data.message.voice_note_duration || null,
         imageUrl: data.message.image_url || null,
         isRead: data.message.is_read,
         createdAt: data.message.created_at,
@@ -196,6 +198,8 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
         replyTo: data.reply_to_message_id || null,
         replyToMessage,
         imageUrl: data.image_url || null,
+        voiceNoteUrl: data.voice_note_url || null,
+        voiceNoteDuration: data.voice_note_duration || null,
         isRead: data.is_read,
         createdAt: data.created_at,
         updatedAt: data.updated_at || data.created_at,
@@ -258,62 +262,57 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
           messages: page.messages.map((msg) => {
             if (msg.id !== data.message_id) return msg;
 
-            // Deduplicate: Check if this user already reacted with this emoji
-            const alreadyReacted = msg.reactions?.some((r) => {
-              if (r.emoji !== data.emoji) return false;
-              if (isFromCurrentUser) return r.reactedByMe;
-              // For other user: if I haven't reacted, count > 0 means they did.
-              // If I *have* reacted, count > 1 means they *also* did.
-              return !r.reactedByMe || r.count > 1;
-            });
-
-            if (alreadyReacted) {
-              return msg;
-            }
-
-            // Strictly follow server events. Do not try to auto-remove old reactions here,
-            // as the server sends explicit 'reaction_removed' events for replacements.
             let existingReactions = msg.reactions || [];
 
-            // If this is a new reaction from the current user, enforce uniqueness locally
-            // by removing any previous reaction from them (UI enforcement as requested)
+            // If this is a new reaction from the current user, remove their previous reaction of a different emoji
             if (isFromCurrentUser) {
-              existingReactions = existingReactions
-                .map((r) => {
-                  if (r.reactedByMe && r.emoji !== data.emoji) {
-                    return { ...r, count: r.count - 1, reactedByMe: false };
-                  }
-                  return r;
-                })
-                .filter((r) => r.count > 0);
+              existingReactions = existingReactions.map((r) => {
+                if (r.reactedByMe && r.emoji !== data.emoji) {
+                  return { ...r, reactedByMe: false };
+                }
+                return r;
+              });
             } else {
-              // For other user (assuming 1-on-1 chat logic where there is only one "other"),
-              // remove their previous reaction if they switch emoji.
-              // We assume 'other user' is present if count > 1 (shared) OR !reactedByMe (only them).
-              existingReactions = existingReactions
-                .map((r) => {
-                  if ((r.count > 1 || !r.reactedByMe) && r.emoji !== data.emoji) {
-                    return { ...r, count: r.count - 1 };
-                  }
-                  return r;
-                })
-                .filter((r) => r.count > 0);
+              // For other user, remove their previous reaction of a different emoji
+              existingReactions = existingReactions.map((r) => {
+                if (r.reactedByOther && r.emoji !== data.emoji) {
+                  return { ...r, reactedByOther: false };
+                }
+                return r;
+              });
             }
 
             // Check if this emoji already exists
             const existingIdx = existingReactions.findIndex((r) => r.emoji === data.emoji);
 
-            let updatedReactions = existingReactions;
+            let updatedReactions = [...existingReactions];
             if (existingIdx >= 0) {
-              // Cap at max 2 for 1-on-1 chats
               updatedReactions = updatedReactions.map((r, i) =>
                 i === existingIdx
-                  ? { ...r, count: Math.min(r.count + 1, 2), reactedByMe: r.reactedByMe || isFromCurrentUser }
+                  ? {
+                      ...r,
+                      reactedByMe: isFromCurrentUser ? true : r.reactedByMe,
+                      reactedByOther: !isFromCurrentUser ? true : r.reactedByOther,
+                    }
                   : r,
               );
             } else {
-              updatedReactions = [...updatedReactions, { emoji: data.emoji, count: 1, reactedByMe: isFromCurrentUser }];
+              updatedReactions.push({
+                emoji: data.emoji,
+                count: 1,
+                reactedByMe: isFromCurrentUser,
+                reactedByOther: !isFromCurrentUser,
+              });
             }
+
+            // Recalculate counts and filter out empty reactions
+            updatedReactions = updatedReactions
+              .map((r) => {
+                const newCount = (r.reactedByMe ? 1 : 0) + (r.reactedByOther ? 1 : 0);
+                return { ...r, count: newCount };
+              })
+              .filter((r) => r.count > 0);
+
             return { ...msg, reactions: updatedReactions };
           }),
         }));
@@ -341,12 +340,25 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
           messages: page.messages.map((msg) => {
             if (msg.id !== data.message_id) return msg;
 
-            const updatedReactions = (msg.reactions || [])
-              .map((r) =>
-                r.emoji === data.emoji
-                  ? { ...r, count: Math.max(0, r.count - 1), reactedByMe: isFromCurrentUser ? false : r.reactedByMe }
-                  : r,
-              )
+            if (!msg.reactions) return msg;
+
+            let updatedReactions = msg.reactions.map((r) => {
+              if (r.emoji === data.emoji) {
+                return {
+                  ...r,
+                  reactedByMe: isFromCurrentUser ? false : r.reactedByMe,
+                  reactedByOther: !isFromCurrentUser ? false : r.reactedByOther,
+                };
+              }
+              return r;
+            });
+
+            // Recalculate counts and filter out empty reactions
+            updatedReactions = updatedReactions
+              .map((r) => {
+                const newCount = (r.reactedByMe ? 1 : 0) + (r.reactedByOther ? 1 : 0);
+                return { ...r, count: newCount };
+              })
               .filter((r) => r.count > 0);
 
             return { ...msg, reactions: updatedReactions };
@@ -430,15 +442,25 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
   );
 
   const handleSend = useCallback(
-    (imageUrl?: string | null) => {
-      if ((!inputText.trim() && !imageUrl) || !chatId) return;
+    (imageUrl?: string | null, voiceNoteUrl?: string | null, voiceNoteDuration?: string | null) => {
+      // For voice notes, we send even without text content
+      if ((!inputText.trim() && !imageUrl && !voiceNoteUrl) || !chatId) return;
 
       const content = inputText.trim();
-      const messageType = replyingTo ? 'reply' : 'text';
+      const messageType = voiceNoteUrl ? 'voice' : replyingTo ? 'reply' : imageUrl ? 'image' : 'text';
       const replyToId = replyingTo?.messageId || null;
       const isFirstMessage = messages.length === 0;
 
-      chatSocketService.sendMessage(chatId, content, messageType, replyToId, imageUrl || null, isFirstMessage);
+      chatSocketService.sendMessage(
+        chatId,
+        content,
+        messageType,
+        replyToId,
+        imageUrl || null,
+        isFirstMessage,
+        voiceNoteUrl || null,
+        voiceNoteDuration || null,
+      );
 
       if (isTyping) {
         setIsTyping(false);
@@ -458,6 +480,7 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
       content: message.content,
       senderName,
       hasImage: !!message.imageUrl || message.messageType === 'image',
+      hasVoice: !!message.voiceNoteUrl || message.messageType === 'voice',
     });
   }, []);
 

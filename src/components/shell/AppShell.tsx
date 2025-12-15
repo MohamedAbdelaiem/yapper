@@ -1,7 +1,9 @@
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
 import { useSocketConnection } from '@/src/hooks/useSocketConnection';
+import useSyncExpoPushToken from '@/src/hooks/useSyncExpoPushToken';
 import { useChatSocketListeners } from '@/src/modules/chat/hooks/useChatSocketListeners';
+import { useNotificationSocketListeners } from '@/src/modules/notifications/hooks/useNotificationSocketListeners';
 import { Stack, usePathname, useSegments } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -26,13 +28,19 @@ const AppShell: React.FC = () => {
   const [anim] = React.useState(() => new Animated.Value(0));
   const segments = useSegments();
 
+  // Sync push token
+  useSyncExpoPushToken();
+
   // Manage socket connection lifecycle
   useSocketConnection();
   // Manage chat listeners
   useChatSocketListeners();
+  // Manage notification listeners
+  useNotificationSocketListeners();
 
   const isInSettings = (segments as string[]).includes('(settings)');
-  const shouldShowBottomNav = !isInSettings;
+  const isInListsScreen = (segments as string[]).includes('Lists');
+  const shouldShowBottomNav = !isInSettings && !isInListsScreen;
 
   return (
     <UiShellProvider>
@@ -92,7 +100,7 @@ const SlidingShell: React.FC<ISlidingShellProps> = React.memo(function SlidingSh
   const touchStartXRef = React.useRef<number | null>(null);
 
   // Only allow sidebar gesture on bottom nav tabs
-  const bottomNavRoutes = ['/', '/search', '/grok', '/notifications', '/messages'];
+  const bottomNavRoutes = ['/', '/search', '/notifications', '/messages'];
   const isOnBottomNavTab = bottomNavRoutes.some((route) => pathname === route);
 
   // Use refs to avoid stale closures in PanResponder

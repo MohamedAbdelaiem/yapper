@@ -19,6 +19,7 @@ interface ITweetListProps {
   bottomSpacing?: number;
   isTabActive?: boolean;
   useCustomRefreshIndicator?: boolean;
+  listHeaderComponent?: React.ReactNode;
 }
 const TweetList: React.FC<ITweetListProps> = (props) => {
   const {
@@ -33,6 +34,7 @@ const TweetList: React.FC<ITweetListProps> = (props) => {
     bottomSpacing = 0,
     isTabActive = true,
     useCustomRefreshIndicator = false,
+    listHeaderComponent: ListHeaderComponent,
   } = props;
   const { theme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -60,6 +62,7 @@ const TweetList: React.FC<ITweetListProps> = (props) => {
             <ActivityIndicator color={theme.colors.text.primary} />
           </View>
         )}
+        {ListHeaderComponent}
       </View>
     );
   };
@@ -90,7 +93,7 @@ const TweetList: React.FC<ITweetListProps> = (props) => {
       style={{ flex: 1 }}
       data={data}
       renderItem={({ item }) => (
-        <TweetContainer tweet={item} isVisible={isTabActive && visibleTweetIds.has(item.tweetId)} />
+        <TweetContainer tweet={item} isVisible={isTabActive && visibleTweetIds.has(item.tweetId)} showThread={true} />
       )}
       keyExtractor={(item, index) => {
         if (item.type === 'repost') {

@@ -1,6 +1,7 @@
 {
   "common": {
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "ok": "OK"
   },
   "home": {
     "title": "Home Screen",
@@ -62,6 +63,7 @@
       "receivedMessage": "Received message",
       "replyingTo": "Replying to {{name}}",
       "photo": "Photo",
+      "voiceMessage": "Voice message",
       "unknown": "Unknown"
     },
     "reactions": {
@@ -110,6 +112,13 @@
     "notifications": "Notifications",
     "messages": "Messages",
     "profile": "Profile"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "tabs": {
+      "all": "All",
+      "mentions": "Mentions"
+    }
   },
   "explore": {
     "title": "Explore",
@@ -463,6 +472,8 @@
   "profile": {
     "editProfile": "Edit profile",
     "blocked": "Blocked",
+    "blockedUser": "@{{username}} is blocked",
+    "blockedUserDescription": "Are you sure you want to view these posts? Viewing posts won't unblock @{{username}}.",
     "viewPosts": "View posts",
     "follow": "Follow",
     "followBack": "Follow Back",
@@ -502,7 +513,9 @@
       "bioPlaceholder": "Add a bio to your profile",
       "countryPlaceholder": "Add your country",
       "websitePlaceholder": "Add your website",
-      "birthdayPlaceholder": "Add your date of birth"
+      "birthdayPlaceholder": "Add your date of birth",
+      "ageError": "Age Restriction",
+      "ageErrorMessage": "You must be at least 13 years old to use this service."
     },
     "actions": {
       "edit": "Edit",
@@ -714,6 +727,7 @@
       "update_failed_message": "Failed to update language. Please try again."
     },
     "mute_block": {
+      "title": "Mute and block",
       "description": "Manage the accounts, words and notifications that you've muted or blocked.",
       "blocked_accounts": "Blocked accounts",
       "muted_accounts": "Muted accounts",
