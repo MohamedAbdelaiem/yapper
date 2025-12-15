@@ -15,6 +15,8 @@ type UserListProps = UserListQuery & {
   autoLoad?: boolean;
   onUserPress?: (user: IUser) => void;
   renderAction?: (user: IUser) => React.ReactNode;
+  topSpacing?: number;
+  bottomSpacing?: number;
 };
 
 const createStyles = (theme: Theme) =>
@@ -114,11 +116,11 @@ const UserList: React.FC<UserListProps> = (props) => {
   };
 
   const renderFooter = () => {
+    const showLoader = loading && !refreshing && (users.length === 0 || hasNextPage);
+
     return (
       <View style={[styles.footer, { paddingBottom: bottom }]} testID="user_list_footer">
-        {loading && !refreshing && hasNextPage && (
-          <ActivityIndicator color={theme.colors.text.link} testID="user_list_loader" />
-        )}
+        {showLoader && <ActivityIndicator color={theme.colors.text.link} testID="user_list_loader" />}
       </View>
     );
   };

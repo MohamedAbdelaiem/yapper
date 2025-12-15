@@ -68,12 +68,11 @@ const FullTweet: React.FC<IFullTweetProps> = (props) => {
   const handleRepostPress = () => {
     bottomSheetModalRef.current?.present();
   };
+
   const segments = useMemo(() => parseTweetBody(tweet.content, tweet.mentions), [tweet.content, tweet.mentions]);
 
   return (
     <View style={styles.container}>
-      {/* Content */}
-
       <View style={styles.header}>
         <View style={styles.userInfoContainer}>
           <Pressable

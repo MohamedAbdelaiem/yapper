@@ -51,21 +51,6 @@ export const logout = async (): Promise<void> => {
   }
 };
 
-export const logOutAll = async (): Promise<void> => {
-  try {
-    const refreshToken = await getRefreshToken();
-    if (refreshToken) {
-      try {
-        await api.post('/auth/logout-all', { refresh_token: refreshToken });
-      } catch (error) {
-        console.warn('LogoutAll API call failed:', extractErrorMessage(error));
-      }
-    }
-  } catch (error) {
-    throw new Error(extractErrorMessage(error));
-  }
-};
-
 /* -------------------------------------------------------------------------- */
 /*                               Google Sign-In                               */
 /* -------------------------------------------------------------------------- */
@@ -165,7 +150,7 @@ export const githubSignIn = async (): Promise<ILoginResponse | IOAuthResponse> =
     // Send to Backend
     // 'redirect_uri' sent to backend must match the one sent to GitHub (the Proxy)
 
-    console.log('Sending code to backend for token exchange...');
+    console.warn('Sending code to backend for token exchange...');
     const res = await api.post('/auth/mobile/github', {
       code: code,
       redirect_uri: PROXY_URL,

@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { router } from 'expo-router';
 import humps from 'humps';
 
 const api = axios.create({
@@ -46,7 +45,8 @@ api.interceptors.response.use(
       !requestUrl.includes('/login') &&
       !requestUrl.includes('/refresh') &&
       !requestUrl.includes('/confirm-password') &&
-      !requestUrl.includes('/logout')
+      !requestUrl.includes('/logout') &&
+      !requestUrl.includes('/users')
     ) {
       if (originalRequest._retry === true) {
         await _handleLogout();
@@ -79,6 +79,8 @@ api.interceptors.response.use(
 async function _handleLogout() {
   const { useAuthStore } = await import('../store/useAuthStore');
   useAuthStore.getState().logout(false);
+  // Use dynamic import to avoid circular dependencies
+  const { router } = await import('expo-router');
   router.replace('/(auth)/landing-screen');
 }
 

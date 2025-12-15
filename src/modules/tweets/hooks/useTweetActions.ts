@@ -1,6 +1,7 @@
+import { useNavigation } from '@/src/hooks/useNavigation';
 import { ICategoryTweetsResponse, IExploreResponse } from '@/src/modules/explore/types';
 import { InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
-import { router, usePathname } from 'expo-router';
+import { usePathname } from 'expo-router';
 import {
   bookmarkTweet,
   createTweet,
@@ -61,6 +62,7 @@ interface IDeleteMutationVariables {
 export const useTweetActions = () => {
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const { goBack } = useNavigation();
 
   const tweetsQueryKey = ['tweets'];
   const profileTweetsQueryKey = ['profile'];
@@ -189,8 +191,8 @@ export const useTweetActions = () => {
     },
 
     onError: (error: any, variables) => {
-      console.log('Error updating like status:', error);
-      console.log('Like error response:', error?.response?.data);
+      console.error('Error updating like status:', error);
+      console.error('Like error response:', error?.response?.data);
       queryClient.invalidateQueries({ queryKey: tweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: profileTweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: ['tweet', { tweetId: variables.tweetId }] });
@@ -268,7 +270,7 @@ export const useTweetActions = () => {
     },
 
     onError: (error, variables) => {
-      console.log('Error updating repost status:', error);
+      console.error('Error updating repost status:', error);
 
       queryClient.invalidateQueries({ queryKey: tweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: profileTweetsQueryKey });
@@ -383,7 +385,7 @@ export const useTweetActions = () => {
     },
 
     onError: (error, variables) => {
-      console.log('Error updating bookmark status:', error);
+      console.error('Error updating bookmark status:', error);
 
       queryClient.invalidateQueries({ queryKey: tweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: profileTweetsQueryKey });
@@ -441,7 +443,7 @@ export const useTweetActions = () => {
       queryClient.invalidateQueries({ queryKey: repliesQueryKey });
     },
     onError: (error, variables) => {
-      console.log('Error replying to tweet:', error);
+      console.error('Error replying to tweet:', error);
       queryClient.invalidateQueries({ queryKey: tweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: profileTweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: ['tweet', { tweetId: variables.tweetId }] });
@@ -475,7 +477,7 @@ export const useTweetActions = () => {
       });
     },
     onError: (error, variables) => {
-      console.log('Error quoting tweet:', error);
+      console.error('Error quoting tweet:', error);
       queryClient.invalidateQueries({ queryKey: tweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: profileTweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: ['tweet', { tweetId: variables.tweetId }] });
@@ -510,22 +512,35 @@ export const useTweetActions = () => {
         removeTweetFromInfiniteCache(oldData, variables.tweetId),
       );
 
+      queryClient.setQueriesData(
+        { queryKey: bookmarksQueryKey, exact: false },
+        (oldData: InfiniteData<IBookmarks> | undefined) => {
+          if (!oldData) return oldData;
+          return removeTweetFromInfiniteCache(
+            oldData as unknown as InfiniteData<ITweets>,
+            variables.tweetId,
+          ) as unknown as InfiniteData<IBookmarks>;
+        },
+      );
+
       // Navigate back if the current screen is the tweet details screen
       if (pathname.includes(variables.tweetId)) {
-        if (router.canGoBack()) router.back();
+        goBack();
       }
     },
     onError: (error, variables) => {
       // Error deleting tweet
-      console.log('Error deleting tweet:', error);
+      console.error('Error deleting tweet:', error);
       queryClient.invalidateQueries({ queryKey: tweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: profileTweetsQueryKey });
       queryClient.invalidateQueries({ queryKey: ['tweet', { tweetId: variables.tweetId }] });
       queryClient.invalidateQueries({ queryKey: repliesQueryKey });
+      queryClient.invalidateQueries({ queryKey: bookmarksQueryKey });
     },
 
     onSuccess: (_, variables) => {
       queryClient.removeQueries({ queryKey: ['tweet', { tweetId: variables.tweetId }] });
+      queryClient.invalidateQueries({ queryKey: bookmarksQueryKey, refetchType: 'active' });
     },
   });
 

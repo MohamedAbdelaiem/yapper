@@ -1,38 +1,54 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Animated, I18nManager, PanResponder, PanResponderGestureState, useWindowDimensions } from 'react-native';
 import i18n from '../i18n';
 
-export const useSwipableTabs = () => {
+interface UseSwipeableTabsGenericOptions {
+  tabCount: number;
+  currentIndex: number;
+  onIndexChange: (index: number) => void;
+  swipeEnabled?: boolean;
+}
+
+/**
+ * Generic hook for swipeable tabs that supports any number of tabs
+ * Based on useSwipableTabs but generalized for N tabs
+ */
+export const useSwipeableTabsGeneric = ({
+  tabCount,
+  currentIndex,
+  onIndexChange,
+  swipeEnabled = true,
+}: UseSwipeableTabsGenericOptions) => {
   const isRTL = i18n.language === 'ar' || I18nManager.isRTL;
   const { width: screenWidth } = useWindowDimensions();
 
-  // Animation value for tab sliding (0 = For You visible, -screenWidth = Following visible)
+  // Animation value for tab sliding
   const slideAnim = useRef(new Animated.Value(0)).current;
 
-  const [homeIndex, setHomeIndex] = useState(0);
-  const homeIndexRef = useRef(homeIndex);
+  const currentIndexRef = useRef(currentIndex);
   useEffect(() => {
-    homeIndexRef.current = homeIndex;
-  }, [homeIndex]);
+    currentIndexRef.current = currentIndex;
+  }, [currentIndex]);
 
-  // Animate to the selected tab when index changes (e.g., from tab bar tap)
+  // Animate to the selected tab when index changes
   useEffect(() => {
     Animated.spring(slideAnim, {
-      toValue: homeIndex === 0 ? 0 : -screenWidth,
+      toValue: -currentIndex * screenWidth,
       useNativeDriver: true,
       tension: 100,
       friction: 12,
     }).start();
-  }, [homeIndex, slideAnim, screenWidth]);
+  }, [currentIndex, slideAnim, screenWidth]);
 
-  // Track touch start position for tab swipe
-  const tabTouchStartXRef = useRef<number | null>(null);
+  // Track touch start position
+  const touchStartXRef = useRef<number | null>(null);
   const drawerEdgeThreshold = screenWidth * 0.2; // 20% of screen for drawer
 
-  // Use refs to avoid stale closures in PanResponder (same pattern as AppShell)
+  // Use refs to avoid stale closures in PanResponder
   const isRTLRef = useRef(isRTL);
   const screenWidthRef = useRef(screenWidth);
   const drawerEdgeThresholdRef = useRef(drawerEdgeThreshold);
+  const tabCountRef = useRef(tabCount);
 
   useEffect(() => {
     isRTLRef.current = isRTL;
@@ -43,89 +59,97 @@ export const useSwipableTabs = () => {
     drawerEdgeThresholdRef.current = screenWidth * 0.2;
   }, [screenWidth]);
 
+  useEffect(() => {
+    tabCountRef.current = tabCount;
+  }, [tabCount]);
+
   // PanResponder for smooth animated tab swiping
-  const tabSwipePanResponder = useMemo(
+  const panResponder = useMemo(
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: (evt) => {
-          // Track where the touch started
-          tabTouchStartXRef.current = evt.nativeEvent.pageX;
-          return false; // Don't capture on start, let onMove decide
+          if (!swipeEnabled) return false;
+          touchStartXRef.current = evt.nativeEvent.pageX;
+          return false;
         },
         onMoveShouldSetPanResponder: (evt, gestureState: PanResponderGestureState) => {
-          const startX = tabTouchStartXRef.current ?? evt.nativeEvent.pageX;
+          if (!swipeEnabled) return false;
+          const startX = touchStartXRef.current ?? evt.nativeEvent.pageX;
           const { dx, dy } = gestureState;
           const sw = screenWidthRef.current;
           const threshold = drawerEdgeThresholdRef.current;
 
-          // Exclude drawer edge zone (first 20% in LTR, last 20% in RTL)
+          // Exclude drawer edge zone
           if (isRTLRef.current) {
-            // In RTL, drawer is on the right
             if (startX > sw - threshold) return false;
           } else {
-            // In LTR, drawer is on the left
             if (startX < threshold) return false;
           }
 
-          // Only capture horizontal swipes with sufficient movement
+          // Only capture horizontal swipes
           return Math.abs(dx) > Math.abs(dy) * 1.5 && Math.abs(dx) > 15;
         },
         onPanResponderGrant: () => {
-          // Stop any running animation when gesture starts
           slideAnim.stopAnimation();
         },
         onPanResponderMove: (_evt, gestureState: PanResponderGestureState) => {
-          // Follow finger with animation (invert for RTL)
           const sw = screenWidthRef.current;
           const dx = isRTLRef.current ? -gestureState.dx : gestureState.dx;
-          const currentOffset = homeIndexRef.current === 0 ? 0 : -sw;
-          // Clamp to valid range with resistance at edges
+          const currentOffset = -currentIndexRef.current * sw;
+          const maxOffset = -(tabCountRef.current - 1) * sw;
+
           let newValue = currentOffset + dx;
+
+          // Add resistance at edges
           if (newValue > 0) {
             newValue = newValue * 0.3; // Resistance when swiping past first tab
-          } else if (newValue < -sw) {
-            newValue = -sw + (newValue + sw) * 0.3; // Resistance when swiping past last tab
+          } else if (newValue < maxOffset) {
+            newValue = maxOffset + (newValue - maxOffset) * 0.3; // Resistance when swiping past last tab
           }
+
           slideAnim.setValue(newValue);
         },
         onPanResponderRelease: (_evt, gestureState: PanResponderGestureState) => {
           const sw = screenWidthRef.current;
           const dx = isRTLRef.current ? -gestureState.dx : gestureState.dx;
           const vx = isRTLRef.current ? -gestureState.vx : gestureState.vx;
-          const currentIndex = homeIndexRef.current;
+          const currentIdx = currentIndexRef.current;
+          const numTabs = tabCountRef.current;
+
+          let targetIndex = currentIdx;
 
           // Determine target tab based on swipe distance and velocity
-          let targetIndex = currentIndex;
-          if (currentIndex === 0 && (dx < -sw / 4 || vx < -0.5)) {
-            targetIndex = 1; // Swipe to Following
-          } else if (currentIndex === 1 && (dx > sw / 4 || vx > 0.5)) {
-            targetIndex = 0; // Swipe to For You
+          if (dx < -sw / 4 || vx < -0.5) {
+            // Swipe left (next tab)
+            targetIndex = Math.min(currentIdx + 1, numTabs - 1);
+          } else if (dx > sw / 4 || vx > 0.5) {
+            // Swipe right (previous tab)
+            targetIndex = Math.max(currentIdx - 1, 0);
           }
 
           // Animate to target position
           Animated.spring(slideAnim, {
-            toValue: targetIndex === 0 ? 0 : -sw,
+            toValue: -targetIndex * sw,
             useNativeDriver: true,
             tension: 100,
             friction: 12,
           }).start();
 
-          if (targetIndex !== currentIndex) {
-            setHomeIndex(targetIndex);
+          if (targetIndex !== currentIdx) {
+            onIndexChange(targetIndex);
           }
         },
         onPanResponderTerminate: () => {
-          // If gesture is terminated (e.g., by scroll), snap back
           const sw = screenWidthRef.current;
           Animated.spring(slideAnim, {
-            toValue: homeIndexRef.current === 0 ? 0 : -sw,
+            toValue: -currentIndexRef.current * sw,
             useNativeDriver: true,
             tension: 100,
             friction: 12,
           }).start();
         },
       }),
-    [slideAnim],
+    [slideAnim, onIndexChange, swipeEnabled],
   );
 
   // Calculate translateX (invert for RTL)
@@ -133,9 +157,7 @@ export const useSwipableTabs = () => {
 
   return {
     translateX,
-    tabSwipePanResponder,
-    homeIndex,
-    setHomeIndex,
+    panResponder,
     screenWidth,
   };
 };

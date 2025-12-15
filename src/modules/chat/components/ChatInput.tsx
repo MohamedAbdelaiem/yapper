@@ -41,7 +41,7 @@ export default function ChatInput({
   value,
   onChangeText,
   onSend,
-  placeholder = 'Start a new message',
+  placeholder,
   style,
   replyingTo,
   onCancelReply,
@@ -49,6 +49,7 @@ export default function ChatInput({
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const { t } = useTranslation();
+  const placeholderText = placeholder ?? t('messages.input.placeholder');
   const [previewUri, setPreviewUri] = useState<string | null>(null);
   const [uploadedImageUrl, setUploadedImageUrl] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -230,13 +231,14 @@ export default function ChatInput({
         <View style={styles.replyBanner}>
           <View style={styles.replyBannerContent}>
             <Text style={styles.replyBannerLabel}>Replying to {replyingTo.senderName}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <View style={styles.replyRow}>
               {replyingTo.hasImage && <ImageIcon size={14} color={theme.colors.text.secondary} />}
               {replyingTo.hasVoice && <Mic size={14} color={theme.colors.text.secondary} />}
               <Text
                 style={[
                   styles.replyBannerText,
-                  { flex: 1, paddingEnd: replyingTo.hasImage || replyingTo.hasVoice ? theme.spacing.sm : 0 },
+                  styles.replyBannerTextFlex,
+                  (replyingTo.hasImage || replyingTo.hasVoice) && styles.replyBannerTextWithPadding,
                 ]}
                 numberOfLines={1}
               >
@@ -320,7 +322,7 @@ export default function ChatInput({
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.input}
-              placeholder={placeholder}
+              placeholder={placeholderText}
               placeholderTextColor={theme.colors.text.secondary}
               value={value}
               onChangeText={onChangeText}
@@ -536,5 +538,16 @@ const createStyles = (theme: Theme) =>
       backgroundColor: theme.colors.accent.bookmark,
       justifyContent: 'center',
       alignItems: 'center',
+    },
+    replyRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    replyBannerTextFlex: {
+      flex: 1,
+    },
+    replyBannerTextWithPadding: {
+      paddingEnd: theme.spacing.sm,
     },
   });

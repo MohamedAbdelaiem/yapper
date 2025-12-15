@@ -1,5 +1,6 @@
 import QueryWrapper from '@/src/components/QueryWrapper';
-import { router, useLocalSearchParams, useSegments } from 'expo-router';
+import { useNavigation } from '@/src/hooks/useNavigation';
+import { useLocalSearchParams, useSegments } from 'expo-router';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert } from 'react-native';
@@ -26,6 +27,7 @@ type TweetContainerProps =
 const TweetContainer: React.FC<TweetContainerProps> = (props) => {
   const tweetId = props.tweetId ?? props.tweet.tweetId;
   const tweetQuery = useTweet(tweetId);
+  const { navigate } = useNavigation();
   const segments = useSegments();
   const params = useLocalSearchParams();
   const currentProfileId = (segments as string[]).includes('(profile)') ? params.id : null;
@@ -70,7 +72,7 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
   };
 
   const handleMentionPress = (username: string) => {
-    router.push({
+    navigate({
       pathname: '/(protected)/(profile)/[id]',
       params: {
         id: username,
@@ -79,7 +81,7 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
   };
 
   const handleHashtagPress = (hashtag: string) => {
-    router.push({
+    navigate({
       pathname: '/(protected)/search/search-results',
       params: {
         query: hashtag,
@@ -91,13 +93,13 @@ const TweetContainer: React.FC<TweetContainerProps> = (props) => {
     // Don't navigate if already on this profile or if it's the current user's own profile
     const isCurrentProfile = userId === currentProfileId;
     if (!isCurrentProfile) {
-      router.push({ pathname: '/(protected)/(profile)/[id]', params: { id: userId } });
+      navigate({ pathname: '/(protected)/(profile)/[id]', params: { id: userId } });
     }
   };
 
   const handleViewPostInteractions = (tweetId: string, ownerId: string) => {
     // TODO: Implement view post interactions functionality
-    router.push({
+    navigate({
       pathname: '/(protected)/tweets/[tweetId]/activity',
       params: {
         tweetId: tweetId,

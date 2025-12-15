@@ -1,7 +1,11 @@
+import CustomTabView from '@/src/components/CustomTabView';
+import AppBar from '@/src/components/shell/AppBar';
 import { Theme } from '@/src/constants/theme';
 import { MediaViewerProvider } from '@/src/context/MediaViewerContext';
 import { useTheme } from '@/src/context/ThemeContext';
-import CustomTabView, { TabConfig } from '@/src/modules/profile/components/CustomTabView';
+import { useNavigation } from '@/src/hooks/useNavigation';
+import useSpacing from '@/src/hooks/useSpacing';
+import { useSwipeableTabsGeneric } from '@/src/hooks/useSwipeableTabsGeneric';
 import SearchInput from '@/src/modules/search/components/SearchInput';
 import { useSearchPosts } from '@/src/modules/search/hooks/useSearchPosts';
 import { useSearchUsers } from '@/src/modules/search/hooks/useSearchUsers';
@@ -10,10 +14,11 @@ import TweetList from '@/src/modules/tweets/components/TweetList';
 import FollowButton from '@/src/modules/user_list/components/FollowButton';
 import UserListItem from '@/src/modules/user_list/components/UserListItem';
 import { IUser } from '@/src/types/user';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { X } from 'lucide-react-native';
 import React, { createContext, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 // Context for sharing search params with tab components
 interface SearchResultsContextType {
@@ -148,7 +153,8 @@ const LatestTab: React.FC<{ activeTabKey?: string }> = memo(({ activeTabKey }) =
 const UsersTab: React.FC<{ activeTabKey?: string }> = memo(({ activeTabKey }) => {
   const { t } = useTranslation();
   const { theme } = useTheme();
-  const router = useRouter();
+  const styles = useMemo(() => createStyles(theme), [theme]);
+  const { navigate } = useNavigation();
   const { query, username } = useSearchResultsContext();
   const { data, isLoading, isRefetching, isFetchingNextPage, hasNextPage, refetch, fetchNextPage } = useSearchUsers({
     query,
@@ -160,12 +166,12 @@ const UsersTab: React.FC<{ activeTabKey?: string }> = memo(({ activeTabKey }) =>
 
   const handleUserPress = useCallback(
     (user: IUser) => {
-      router.push({
+      navigate({
         pathname: '/(protected)/(profile)/[id]',
         params: { id: user.id },
       });
     },
-    [router],
+    [navigate],
   );
 
   const renderItem = useCallback(
@@ -177,7 +183,7 @@ const UsersTab: React.FC<{ activeTabKey?: string }> = memo(({ activeTabKey }) =>
 
   if (isLoading) {
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <View style={styles.loadingContainer}>
         <ActivityIndicator color={theme.colors.text.link} />
       </View>
     );
@@ -192,7 +198,7 @@ const UsersTab: React.FC<{ activeTabKey?: string }> = memo(({ activeTabKey }) =>
       data={users}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
-      ListFooterComponent={() => <View style={{ height: 120 }} />}
+      ListFooterComponent={() => <View style={styles.listFooter} />}
       refreshControl={
         <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={theme.colors.text.link} />
       }
@@ -206,12 +212,14 @@ const UsersTab: React.FC<{ activeTabKey?: string }> = memo(({ activeTabKey }) =>
 export default function SearchResultsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const router = useRouter();
+  const { navigate } = useNavigation();
+  const { top } = useSpacing();
   const params = useLocalSearchParams<{ query: string; username?: string }>();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const [query, setQuery] = useState(params.query || '');
   const [activeQuery, setActiveQuery] = useState(params.query || '');
+  const [activeIndex, setActiveIndex] = useState(0);
   const username = params.username || undefined;
 
   const handleSubmit = useCallback(() => {
@@ -221,44 +229,91 @@ export default function SearchResultsScreen() {
   }, [query]);
 
   const handleSearchFocus = useCallback(() => {
-    router.push({
+    navigate({
       pathname: '/(protected)/search/search-suggestions' as any,
       params: { query: query, ...(username && { username }) },
     });
-  }, [router, query, username]);
+  }, [navigate, query, username]);
 
   const handleClear = useCallback(() => {
-    router.push({
+    navigate({
       pathname: '/(protected)/search/search-suggestions' as any,
       params: { query: '', ...(username && { username }) },
     });
-  }, [router, username]);
+  }, [navigate, username]);
 
   const contextValue = useMemo(() => ({ query: activeQuery, username }), [activeQuery, username]);
 
-  const tabs: TabConfig[] = useMemo(
+  const routes = useMemo(
     () => [
-      { key: 'posts', title: t('search.tabs.posts', 'Posts'), component: PostsTab },
-      { key: 'media', title: t('search.tabs.media', 'Media'), component: MediaTab },
-      { key: 'latest', title: t('search.tabs.latest', 'Latest'), component: LatestTab },
-      { key: 'users', title: t('search.tabs.users', 'Users'), component: UsersTab },
+      { key: 'posts', title: t('search.tabs.posts', 'Posts') },
+      { key: 'media', title: t('search.tabs.media', 'Media') },
+      { key: 'latest', title: t('search.tabs.latest', 'Latest') },
+      { key: 'users', title: t('search.tabs.users', 'Users') },
     ],
     [t],
   );
+
+  const activeTabKey = routes[activeIndex]?.key;
+
+  const { translateX, panResponder, screenWidth } = useSwipeableTabsGeneric({
+    tabCount: routes.length,
+    currentIndex: activeIndex,
+    onIndexChange: setActiveIndex,
+    swipeEnabled: true,
+  });
 
   return (
     <View style={styles.container}>
       <SearchResultsContext.Provider value={contextValue}>
         <MediaViewerProvider>
-          <SearchInput
-            value={query}
-            onChangeText={setQuery}
-            onSubmit={handleSubmit}
-            onFocus={handleSearchFocus}
-            onClear={handleClear}
-            autoFocus={false}
-          />
-          <CustomTabView tabs={tabs} scrollEnabled={true} lazy={true} />
+          <View style={styles.appBarWrapper}>
+            <AppBar
+              children={
+                <SearchInput
+                  value={query}
+                  onChangeText={setQuery}
+                  onSubmit={handleSubmit}
+                  onFocus={handleSearchFocus}
+                  autoFocus={false}
+                />
+              }
+              rightElement={
+                query.length > 0 ? (
+                  <Pressable
+                    onPress={handleClear}
+                    accessibilityLabel={t('search.clear', 'Clear')}
+                    accessibilityRole="button"
+                    style={styles.clearButton}
+                    testID="search_clear_button"
+                  >
+                    <X size={20} color={theme.colors.text.secondary} />
+                  </Pressable>
+                ) : null
+              }
+              tabView={
+                <CustomTabView routes={routes} index={activeIndex} onIndexChange={setActiveIndex} scrollable={true} />
+              }
+            />
+          </View>
+          <View style={styles.tabsOuterContainer} {...panResponder.panHandlers}>
+            <Animated.View
+              style={[styles.tabsInnerContainer, { width: screenWidth * routes.length, transform: [{ translateX }] }]}
+            >
+              <View style={[styles.tabPage, { width: screenWidth, paddingTop: top }]}>
+                <PostsTab activeTabKey={activeTabKey} />
+              </View>
+              <View style={[styles.tabPage, { width: screenWidth, paddingTop: top }]}>
+                <MediaTab activeTabKey={activeTabKey} />
+              </View>
+              <View style={[styles.tabPage, { width: screenWidth, paddingTop: top }]}>
+                <LatestTab activeTabKey={activeTabKey} />
+              </View>
+              <View style={[styles.tabPage, { width: screenWidth, paddingTop: top }]}>
+                <UsersTab activeTabKey={activeTabKey} />
+              </View>
+            </Animated.View>
+          </View>
           <MediaViewerModal />
         </MediaViewerProvider>
       </SearchResultsContext.Provider>
@@ -271,5 +326,37 @@ const createStyles = (theme: Theme) =>
     container: {
       flex: 1,
       backgroundColor: theme.colors.background.primary,
+    },
+    appBarWrapper: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      zIndex: 1,
+    },
+    loadingContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    listFooter: {
+      height: 120,
+    },
+    tabsOuterContainer: {
+      flex: 1,
+      overflow: 'hidden',
+    },
+    tabsInnerContainer: {
+      flex: 1,
+      flexDirection: 'row',
+    },
+    tabPage: {
+      flex: 1,
+    },
+    clearButton: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
   });

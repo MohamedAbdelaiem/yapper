@@ -171,7 +171,7 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
       });
       queryClient.invalidateQueries({ queryKey: ['chats'] });
     },
-    [chatId, queryClient, messagesData, currentUser?.id],
+    [chatId, queryClient, currentUser?.id],
   );
 
   // Handle message sent confirmation
@@ -225,7 +225,7 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
       });
       queryClient.invalidateQueries({ queryKey: ['chats'] });
     },
-    [chatId, queryClient, messagesData],
+    [chatId, queryClient],
   );
   const handleUserTyping = useCallback(
     (data: IUserTypingData) => {
@@ -447,7 +447,7 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
       if ((!inputText.trim() && !imageUrl && !voiceNoteUrl) || !chatId) return;
 
       const content = inputText.trim();
-      const messageType = voiceNoteUrl ? 'voice' : replyingTo ? 'reply' : imageUrl ? 'image' : 'text';
+      const messageType = voiceNoteUrl ? 'voice' : replyingTo ? 'reply' : 'text';
       const replyToId = replyingTo?.messageId || null;
       const isFirstMessage = messages.length === 0;
 
@@ -479,7 +479,7 @@ export function useChatConversation({ chatId }: UseChatConversationOptions): Use
       messageId: message.id,
       content: message.content,
       senderName,
-      hasImage: !!message.imageUrl || message.messageType === 'image',
+      hasImage: !!message.imageUrl,
       hasVoice: !!message.voiceNoteUrl || message.messageType === 'voice',
     });
   }, []);

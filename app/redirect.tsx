@@ -1,6 +1,7 @@
 import ActivityLoader from '@/src/components/ActivityLoader';
 import { useTheme } from '@/src/context/ThemeContext';
-import { router, usePathname } from 'expo-router';
+import { useNavigation } from '@/src/hooks/useNavigation';
+import { usePathname } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -8,19 +9,20 @@ export default function RedirectScreen() {
   const { theme } = useTheme();
   const pathname = usePathname();
   const hasNavigated = useRef(false);
+  const { replace } = useNavigation();
 
   useEffect(() => {
     const timeout = setTimeout(() => {
       if (pathname === '/redirect' && !hasNavigated.current) {
-        router.replace('/(auth)/landing-screen');
+        hasNavigated.current = true;
+        replace('/(auth)/landing-screen');
       }
     }, 15000); // 15 seconds timeout
 
     return () => {
       clearTimeout(timeout);
-      hasNavigated.current = true;
     };
-  }, [pathname]);
+  }, [pathname, replace]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background.primary }]}>

@@ -1,21 +1,24 @@
+import AppBar from '@/src/components/shell/AppBar';
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
 import useDebounce from '@/src/hooks/useDebounce';
+import { useNavigation } from '@/src/hooks/useNavigation';
 import SearchHistoryList from '@/src/modules/search/components/SearchHistoryList';
 import SearchInput from '@/src/modules/search/components/SearchInput';
 import SuggestedUserItem from '@/src/modules/search/components/SuggestedUserItem';
 import SuggestionItem from '@/src/modules/search/components/SuggestionItem';
 import useSearchHistory from '@/src/modules/search/hooks/useSearchHistory';
 import { useSearchSuggestions } from '@/src/modules/search/hooks/useSearchSuggestions';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
+import { X } from 'lucide-react-native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 export default function SearchSuggestionsScreen() {
   const { theme } = useTheme();
   const { t } = useTranslation();
-  const router = useRouter();
+  const { navigate } = useNavigation();
   const params = useLocalSearchParams<{ query?: string; username?: string }>();
   const styles = useMemo(() => createStyles(theme), [theme]);
 
@@ -41,12 +44,12 @@ export default function SearchSuggestionsScreen() {
   const handleQueryPress = useCallback(
     (selectedQuery: string) => {
       addToHistory(selectedQuery);
-      router.push({
+      navigate({
         pathname: '/(protected)/search/search-results' as any,
         params: { query: selectedQuery, ...(username && { username }) },
       });
     },
-    [router, username, addToHistory],
+    [navigate, username, addToHistory],
   );
 
   const handleArrowPress = useCallback((selectedQuery: string) => {
@@ -55,12 +58,12 @@ export default function SearchSuggestionsScreen() {
 
   const handleUserPress = useCallback(
     (userId: string) => {
-      router.push({
+      navigate({
         pathname: '/(protected)/(profile)/[id]',
         params: { id: userId },
       });
     },
-    [router],
+    [navigate],
   );
 
   const handleSubmit = useCallback(() => {
@@ -108,9 +111,39 @@ export default function SearchSuggestionsScreen() {
     [suggestions, users, renderSuggestionItem, styles.separator],
   );
 
+  const handleClear = useCallback(() => {
+    setQuery('');
+  }, []);
+
   return (
     <View style={styles.container}>
-      <SearchInput value={query} onChangeText={setQuery} onSubmit={handleSubmit} autoFocus placeholder={placeholder} />
+      <View style={styles.appBarWrapper}>
+        <AppBar
+          hideLeftElement={true}
+          children={
+            <SearchInput
+              value={query}
+              onChangeText={setQuery}
+              onSubmit={handleSubmit}
+              autoFocus
+              placeholder={placeholder}
+            />
+          }
+          rightElement={
+            query.length > 0 ? (
+              <Pressable
+                onPress={handleClear}
+                accessibilityLabel={t('search.clear', 'Clear')}
+                accessibilityRole="button"
+                style={styles.clearButton}
+                testID="search_clear_button"
+              >
+                <X size={20} color={theme.colors.text.secondary} />
+              </Pressable>
+            ) : null
+          }
+        />
+      </View>
 
       {isLoading && query.length > 0 && (
         <View style={styles.loadingContainer}>
@@ -153,6 +186,15 @@ const createStyles = (theme: Theme) =>
     container: {
       flex: 1,
       backgroundColor: theme.colors.background.primary,
+    },
+    appBarWrapper: {
+      zIndex: 1,
+    },
+    clearButton: {
+      width: 40,
+      height: 40,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     loadingContainer: {
       paddingVertical: theme.spacing.xl,

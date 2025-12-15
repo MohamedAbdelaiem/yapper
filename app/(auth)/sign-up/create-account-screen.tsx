@@ -2,6 +2,8 @@ import ActivityLoader from '@/src/components/ActivityLoader';
 import ReCaptcha, { ReCaptchaRef } from '@/src/components/ReCaptcha';
 import { Theme } from '@/src/constants/theme';
 import { useTheme } from '@/src/context/ThemeContext';
+import { useNavigation } from '@/src/hooks/useNavigation';
+import i18n from '@/src/i18n';
 import AuthInput from '@/src/modules/auth/components/shared/AuthInput';
 import BottomBar from '@/src/modules/auth/components/shared/BottomBar';
 import AuthTitle from '@/src/modules/auth/components/shared/Title';
@@ -9,19 +11,18 @@ import TopBar from '@/src/modules/auth/components/shared/TopBar';
 import { emailSchema, userBirthDateSchema } from '@/src/modules/auth/schemas/schemas';
 import { signUpStep1 } from '@/src/modules/auth/services/signUpService';
 import { useSignUpStore } from '@/src/modules/auth/store/useSignUpStore';
-import { router } from 'expo-router';
-import React, { useMemo, useState, useRef } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
-import { useTranslation } from 'react-i18next';
-import Toast from 'react-native-toast-message';
 import { filterAsciiOnly } from '@/src/modules/auth/utils/filterAscii';
-import i18n from '@/src/i18n';
+import React, { useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { ScrollView, StyleSheet, View } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 const CreateAccountScreen = () => {
   const { theme } = useTheme();
   const { t } = useTranslation();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const recaptchaRef = useRef<ReCaptchaRef>(null);
+  const { navigate, goBack } = useNavigation();
 
   // Zustand store
   const setStoreName = useSignUpStore((state) => state.setName);
@@ -41,17 +42,18 @@ const CreateAccountScreen = () => {
   const isBirthDateValid = dateOfBirth.length > 0 ? userBirthDateSchema.safeParse(dateOfBirth).success : true;
 
   const onBackPress = () => {
-    router.back();
+    goBack();
   };
 
   const onchangeName = (text: string) => {
     setName(filterAsciiOnly(text));
-    setIsValidName(text.trim().length <= 50 ? true : false);
+    setIsValidName(text.trim().length <= 25 && text.trim().length >= 3 ? true : false);
   };
 
   const isFormValid =
     name.trim().length > 0 &&
     email.trim().length > 0 &&
+    isValidName &&
     isEmailValid &&
     dateOfBirth.length > 0 &&
     isBirthDateValid &&
@@ -93,7 +95,7 @@ const CreateAccountScreen = () => {
           text1: t('auth.signUp.createAccount.success.codeSent'),
           text2: t('auth.signUp.createAccount.success.checkEmail'),
         });
-        router.push('/(auth)/sign-up/verify-code');
+        navigate('/(auth)/sign-up/verify-code');
       } else {
         Toast.show({
           type: 'error',
