@@ -144,7 +144,7 @@ const CreateAccountScreen = () => {
             onChange={onchangeName}
             type="text"
             status="success"
-            showCheck={isValidName}
+            showCheck={isValidName && name.length > 0}
             errorMessage={t('auth.signUp.createAccount.nameError', { count: name.length })}
           />
 
