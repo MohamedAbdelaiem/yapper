@@ -9,7 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Alert, Modal, Text, TouchableOpacity, View } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import { useTheme } from '../../../context/ThemeContext';
-import { deleteAvatar, deleteCover, updateUserProfile, uploadAvatar, uploadCover } from '../services/profileService';
+import { updateUserProfile, uploadAvatar, uploadCover } from '../services/profileService';
 import { createEditModalStyles } from '../styles/edit-modal-styles';
 import Input from '../ui/Input';
 import { showImagePickerOptions } from '../utils/edit-profile.utils';
@@ -139,7 +139,7 @@ const EditProfileModal: React.FC<IEditProfileModalProps> = ({
       if (newAvatarUri) {
         if (newAvatarUri === DEFAULT_AVATAR_URL) {
           if (user?.avatarUrl && user.avatarUrl !== DEFAULT_AVATAR_URL) {
-            await deleteAvatar(user.avatarUrl);
+            // await deleteAvatar(user.avatarUrl);
           }
           avatarUrl = null;
         } else if (newAvatarUri.startsWith('file://') || newAvatarUri.startsWith('content://')) {
@@ -151,7 +151,7 @@ const EditProfileModal: React.FC<IEditProfileModalProps> = ({
       if (newCoverUri) {
         if (newCoverUri === DEFAULT_BANNER_URL) {
           if (user?.coverUrl && user.coverUrl !== DEFAULT_BANNER_URL) {
-            await deleteCover(user.coverUrl);
+            // await deleteCover(user.coverUrl);
           }
           coverUrl = null;
         } else if (newCoverUri.startsWith('file://') || newCoverUri.startsWith('content://')) {
