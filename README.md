@@ -8,17 +8,15 @@ A modern, feature-rich Twitter/X-inspired mobile application built with React Na
 - [Get the App](#get-the-app)
 - [Features](#features)
 - [Tech Stack](#tech-stack)
-- [Project Structure](#project-structure)
+- [Project Structure Details](#project-structure-details)
 - [Getting Started](#getting-started)
 - [Available Scripts](#available-scripts)
 - [Testing](#testing)
 - [Code Quality](#code-quality)
-- [Building & Deployment](#building--deployment)
-- [Project Structure Details](#project-structure-details)
 - [Contributing](#contributing)
 - [Authors](#authors)
-- [Acknowledgments](#acknowledgments)
 - [Resources & Documentation](#resources--documentation)
+- [Acknowledgments](#acknowledgments)
 - [License](#license)
 
 ---
@@ -216,136 +214,45 @@ Install now and join the conversation in real-time with a full-featured social e
 
 ---
 
-## Project Structure
+## Project Structure Details
+
+### Module Structure
+
+Each feature module typically contains:
 
 ```
-yapper-mobile/
-├── app/                          # Expo Router app directory (file-based routing)
-│   ├── (auth)/                   # Authentication screens (login, sign-up, etc.)
-│   ├── (protected)/              # Protected screens (requiring authentication)
-│   │   ├── (explore)/            # Explore module
-│   │   ├── (profile)/            # User profile module
-│   │   ├── (settings)/           # Settings module
-│   │   ├── bookmarks/            # Bookmarks feature
-│   │   ├── messages/             # Direct messages
-│   │   ├── notifications/        # Notifications
-│   │   ├── search/               # Search functionality
-│   │   └── tweets/               # Tweet creation/view
-│   ├── _layout.tsx               # Root layout
-│   └── ...other root routes
-│
-├── src/                          # Source code (business logic)
-│   ├── components/               # Reusable UI components
-│   │   ├── ActivityLoader.tsx
-│   │   ├── Button.tsx
-│   │   ├── CustomBottomSheet.tsx
-│   │   ├── CustomTabView.tsx
-│   │   ├── FloatingActionButton.tsx
-│   │   ├── LoadingIndicator.tsx
-│   │   ├── ReCaptcha.tsx
-│   │   ├── ThemedText.tsx
-│   │   ├── home/                 # Home-specific components
-│   │   ├── icons/                # Icon components
-│   │   └── shell/                # Shell/layout components
-│   │
-│   ├── constants/                # Application constants
-│   │   ├── defaults.ts
-│   │   └── theme.ts
-│   │
-│   ├── context/                  # React Context providers
-│   │   ├── MediaViewerContext.tsx
-│   │   ├── QueryProvider.tsx
-│   │   ├── ThemeContext.tsx
-│   │   └── UiShellContext.tsx
-│   │
-│   ├── hooks/                    # Custom React hooks
-│   │   ├── useDebounce.ts
-│   │   ├── useNavigation.ts
-│   │   ├── useRTL.ts
-│   │   ├── useSocketConnection.ts
-│   │   ├── useSpacing.ts
-│   │   ├── useSwipableTabs.ts
-│   │   ├── useTheme.ts
-│   │   └── __tests__/
-│   │
-│   ├── i18n/                     # Internationalization
-│   │   ├── locales/              # Language files (en.json, ar.json, etc.)
-│   │   └── index.ts
-│   │
-│   ├── modules/                  # Feature modules
-│   │   ├── auth/                 # Authentication module
-│   │   ├── chat/                 # Chat/messaging module
-│   │   ├── explore/              # Explore feeds module
-│   │   ├── notifications/        # Notifications module
-│   │   ├── profile/              # User profile module
-│   │   ├── search/               # Search module
-│   │   ├── settings/             # Settings module
-│   │   ├── tweets/               # Tweet/post module
-│   │   └── user_list/            # User lists module
-│   │
-│   ├── services/                 # API and external services
-│   │   ├── apiClient.ts          # Axios HTTP client
-│   │   ├── socketService.ts      # WebSocket service
-│   │   ├── tokenRefreshService.ts # Token management
-│   │   └── userService.ts        # User API calls
-│   │
-│   ├── store/                    # Zustand state management
-│   │   └── useNotificationStore.ts
-│   │
-│   ├── styles/                   # Global styles
-│   │   └── index.ts
-│   │
-│   ├── types/                    # TypeScript type definitions
-│   │   └── index.ts
-│   │
-│   ├── utils/                    # Utility functions
-│   │   ├── mediaCache.ts
-│   │   ├── registerForPushNotificationsAsync.ts
-│   │   └── ...other utilities
-│   │
-│   └── __tests__/                # Test files organized by module
-│       ├── app/
-│       ├── auth/
-│       ├── components/
-│       ├── context/
-│       ├── hooks/
-│       ├── modules/
-│       ├── screens/
-│       └── services/
-│
-├── assets/                       # Static assets
-│   ├── fonts/                    # Custom fonts
-│   ├── images/                   # App icons and images
-│   └── emojis.json               # Emoji data
-│
-├── android/                      # Android native code
-│   ├── app/                      # Android app module
-│   └── ...gradle files
-│
-├── __mocks__/                    # Jest mocks
-│   └── fileMock.js
-│
-├── scripts/                      # Build and utility scripts
-│   └── reset-project.js
-│
-├── Configuration Files
-│   ├── app.json                  # Expo configuration
-│   ├── eas.json                  # EAS Build configuration
-│   ├── tsconfig.json             # TypeScript configuration
-│   ├── jest.config.js            # Jest testing configuration
-│   ├── eslint.config.mjs         # ESLint configuration
-│   ├── babel.config.js           # Babel configuration
-│   ├── metro.config.js           # Metro bundler configuration
-│   ├── package.json              # Dependencies
-│   ├── .gitignore                # Git ignore rules
-│   ├── .prettierrc                # Prettier formatting rules
-│   ├── .husky/                   # Git hooks
-│   └── .lintstagedrc             # Lint-staged configuration
-│
-└── Documentation
-    ├── README.md                 # This file
-    └── CONTRIBUTING.md           # Contribution guidelines
+module-name/
+├── components/          # UI components specific to module
+├── containers/          # Container components
+├── hooks/              # Custom hooks for module
+├── services/           # API service calls
+├── store/              # Zustand stores (if applicable)
+├── types/              # TypeScript types
+├── utils/              # Module utilities
+└── __tests__/          # Module tests
 ```
+
+### Component Architecture
+
+Components are organized by responsibility:
+
+- **Presentational Components** - Pure UI components in `components/`
+- **Container Components** - Smart components with logic in `containers/`
+- **Hooks** - Custom React hooks in `hooks/`
+- **Services** - API and business logic in `services/`
+
+### State Management
+
+- **Local Component State** - `useState` for simple UI state
+- **Context API** - Theme, Language, Shell state
+- **Zustand** - Global app state (notifications, filters)
+- **React Query** - Server state and caching
+
+### API Communication
+
+- **Axios** - HTTP client instance in `services/apiClient.ts`
+- **Token Refresh** - Automatic token refresh in `services/tokenRefreshService.ts`
+- **Socket.io** - Real-time WebSocket in `services/socketService.ts`
 
 ---
 
@@ -557,107 +464,6 @@ npm run sonar:branch
 
 ---
 
-## Building & Deployment
-
-### Local Build (Development)
-
-For testing builds locally before submitting to stores.
-
-**Android APK**:
-
-```bash
-eas build --platform android --profile development
-```
-
-**iOS Archive**:
-
-```bash
-eas build --platform ios --profile development
-```
-
-### Preview Build
-
-Builds for internal testing without store submission.
-
-```bash
-eas build --platform android --profile preview
-eas build --platform ios --profile preview
-```
-
-### Production Build
-
-Final builds for app store submission.
-
-**Android App Bundle** (Google Play):
-
-```bash
-eas build --platform android --profile production
-```
-
-**iOS Archive** (Apple App Store):
-
-```bash
-eas build --platform ios --profile production
-```
-
-### Expo Submission
-
-After production build:
-
-**Android**:
-
-```bash
-eas submit --platform android
-```
-
-**iOS**:
-
-```bash
-eas submit --platform ios
-```
-
-## Project Structure Details
-
-### Module Structure
-
-Each feature module typically contains:
-
-```
-module-name/
-├── components/          # UI components specific to module
-├── containers/          # Container components
-├── hooks/              # Custom hooks for module
-├── services/           # API service calls
-├── store/              # Zustand stores (if applicable)
-├── types/              # TypeScript types
-├── utils/              # Module utilities
-└── __tests__/          # Module tests
-```
-
-### Component Architecture
-
-Components are organized by responsibility:
-
-- **Presentational Components** - Pure UI components in `components/`
-- **Container Components** - Smart components with logic in `containers/`
-- **Hooks** - Custom React hooks in `hooks/`
-- **Services** - API and business logic in `services/`
-
-### State Management
-
-- **Local Component State** - `useState` for simple UI state
-- **Context API** - Theme, Language, Shell state
-- **Zustand** - Global app state (notifications, filters)
-- **React Query** - Server state and caching
-
-### API Communication
-
-- **Axios** - HTTP client instance in `services/apiClient.ts`
-- **Token Refresh** - Automatic token refresh in `services/tokenRefreshService.ts`
-- **Socket.io** - Real-time WebSocket in `services/socketService.ts`
-
----
-
 ## Contributing
 
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed contribution guidelines including:
@@ -677,6 +483,28 @@ Quick contribution steps:
 5. Create Pull Request with description
 6. Pass all checks and get approval
 7. Squash and merge to develop
+
+---
+
+## Authors
+
+This project was built with ❤️ by our amazing team:
+
+| Name                   | GitHub                                                 | Role           |
+| ---------------------- | ------------------------------------------------------ | -------------- |
+| **Saleh Ahmed**        | [@salehahmed99](https://github.com/salehahmed99)       | Lead Developer |
+| **Karim Yasser**       | [@KarimmYasser](https://github.com/KarimmYasser)       | Developer      |
+| **Abdallah Ayman**     | [@AbdallahAyman03](https://github.com/AbdallahAyman03) | Developer      |
+| **Ahmed Kamal**        | [@ahmedkamal14](https://github.com/ahmedkamal14)       | Developer      |
+| **Mohamed Abdelaziem** | [@mohamed3b3az](https://github.com/mohamed3b3az)       | Developer      |
+
+### Project Statistics
+
+- 📅 **Project Started**: October 2025
+- 📝 **Total Commits**: 595+
+- 🏷️ **Latest Release**: v1.2.0 (December 2025)
+- 👥 **Contributors**: 6 team members
+- 🌿 **Active Branches**: 33
 
 ---
 
@@ -700,28 +528,6 @@ Quick contribution steps:
 
 - [Expo Discord](https://chat.expo.dev)
 - [React Native Community](https://reactnative.dev/community/overview)
-
----
-
-## Authors
-
-This project was built with ❤️ by our amazing team:
-
-| Name                   | GitHub                                                 | Role           |
-| ---------------------- | ------------------------------------------------------ | -------------- |
-| **Saleh Ahmed**        | [@salehahmed99](https://github.com/salehahmed99)       | Lead Developer |
-| **Karim Yasser**       | [@KarimmYasser](https://github.com/KarimmYasser)       | Developer      |
-| **Abdallah Ayman**     | [@AbdallahAyman03](https://github.com/AbdallahAyman03) | Developer      |
-| **Ahmed Kamal**        | [@ahmedkamal14](https://github.com/ahmedkamal14)       | Developer      |
-| **Mohamed Abdelaziem** | [@mohamed3b3az](https://github.com/mohamed3b3az)       | Developer      |
-
-### Project Statistics
-
-- 📅 **Project Started**: October 2025
-- 📝 **Total Commits**: 595+
-- 🏷️ **Latest Release**: v1.2.0 (December 2025)
-- 👥 **Contributors**: 6 team members
-- 🌿 **Active Branches**: 33
 
 ---
 
@@ -767,9 +573,6 @@ For questions, issues, or collaboration:
 <div align="center">
 
 **Built with ❤️ by the Yapper Team**
-
-[![GitHub stars](https://img.shields.io/github/stars/salehahmed99/yapper-mobile?style=social)](https://github.com/salehahmed99/yapper-mobile)
-[![GitHub forks](https://img.shields.io/github/forks/salehahmed99/yapper-mobile?style=social)](https://github.com/salehahmed99/yapper-mobile/fork)
 
 </div>
 
