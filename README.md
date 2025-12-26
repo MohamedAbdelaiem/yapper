@@ -5,15 +5,14 @@ A modern, feature-rich Twitter/X-inspired mobile application built with React Na
 ## 📋 Table of Contents
 
 - [Overview](#overview)
+- [Features](#features)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Available Scripts](#available-scripts)
-- [Development Workflow](#development-workflow)
 - [Testing](#testing)
 - [Code Quality](#code-quality)
 - [Building & Deployment](#building--deployment)
-- [Features](#features)
 - [Project Structure Details](#project-structure-details)
 - [Contributing](#contributing)
 - [Authors](#authors)
@@ -36,6 +35,79 @@ Yapper Mobile is a cross-platform mobile application built with **Expo** and **R
 - ⚡ Optimized performance with caching strategies
 - 📊 Comprehensive testing and code quality checks
 - 🚀 Automated CI/CD pipeline with EAS
+
+---
+
+## Features
+
+### Authentication
+
+- 🔐 Email/Phone/Username login
+- 📱 Sign-up with validation
+- 🔑 Password reset functionality
+- 🔐 Secure token storage with Expo Secure Store
+- 🔄 Automatic token refresh
+- 📱 Google Sign-In integration
+
+### Social Features
+
+- 📝 Create and share posts/tweets
+- ❤️ Like and bookmark posts
+- 💬 Reply and quote posts
+- 🔄 Repost/retweet functionality
+- 👥 Follow/unfollow users
+- 🔍 Search posts and users
+- 📊 Trending topics
+
+### Real-time Communication
+
+- 💬 Direct messaging (DMs)
+- 🔔 Real-time notifications via WebSocket
+- ✍️ Typing indicators
+- 📱 Push notifications
+- 🔔 Notification center
+
+### Exploration
+
+- 🏠 Home feed with algorithms
+- 🔥 Trending and explore sections
+- 👥 User recommendations
+- 🔍 Advanced search
+
+### User Profile
+
+- 👤 User profile with bio and stats
+- 📝 Tweet history
+- 👥 Followers/following lists
+- 🔗 Profile links
+- 🎨 Theme customization
+
+### Settings & Preferences
+
+- 🌓 Dark/light theme
+- 🌍 Language selection (i18n)
+- 🔔 Notification preferences
+- 🔐 Privacy settings
+- 📱 Account management
+
+### Media & Rich Content
+
+- 📸 Image uploads and gallery
+- 🎥 Video support
+- 🎵 Audio recording
+- 📍 Location sharing
+- 🖼️ Media caching for performance
+
+---
+
+## Performance Optimization
+
+- 🚀 Image caching with Expo Image
+- 📦 Code splitting via Expo Router
+- ⚡ Memoization with React.memo
+- 🎯 FlatList optimization for large lists
+- 💾 Persistent caching for API responses
+- 🔄 Lazy loading for images and content
 
 ---
 
@@ -321,70 +393,6 @@ expo start --web
 | `npm run sonar`        | Run SonarQube analysis on main branch    |
 | `npm run sonar:branch` | Run SonarQube analysis on current branch |
 
-## Development Workflow
-
-### Branch Strategy
-
-This project follows **Git Flow** with the following branch structure:
-
-- **`main`** - Production-ready releases
-- **`develop`** - Integration branch for features
-- **`feature/*`** - Feature branches (e.g., `feature/chat-ui`)
-- **`bugfix/*`** - Bug fix branches (e.g., `bugfix/login-error`)
-- **`hotfix/*`** - Production hotfixes (e.g., `hotfix/critical-bug`)
-- **`release/*`** - Release preparation (e.g., `release/1.2.0`)
-
-### Git Hooks
-
-The project uses **Husky** for Git hooks that enforce code quality:
-
-- Pre-commit: Runs ESLint and Prettier on staged files
-- Pre-push: Runs type checking and tests
-
-### Commit Messages
-
-Follow conventional commit format:
-
-```
-type(scope): description
-
-type: feat, fix, docs, style, refactor, test, chore
-scope: module or component affected
-description: clear, concise change description
-```
-
-Example:
-
-```
-feat(tweets): add tweet scheduling feature
-fix(auth): resolve Google Sign-In timeout issue
-docs(readme): update installation instructions
-```
-
-### Creating a Feature
-
-1. Create feature branch from `develop`
-
-   ```bash
-   git checkout develop
-   git pull origin develop
-   git checkout -b feature/your-feature-name
-   ```
-
-2. Make your changes with regular commits
-
-3. Push to remote
-
-   ```bash
-   git push origin feature/your-feature-name
-   ```
-
-4. Create Pull Request on GitHub
-
-5. After merge, delete feature branch
-
----
-
 ## Testing
 
 ### Running Tests
@@ -548,80 +556,6 @@ eas submit --platform android
 eas submit --platform ios
 ```
 
-### Build Profiles
-
-Configured in `eas.json`:
-
-| Profile       | Type       | Auto-increment | Android | Environment |
-| ------------- | ---------- | -------------- | ------- | ----------- |
-| `development` | APK        | No             | apk     | development |
-| `preview`     | APK        | No             | apk     | preview     |
-| `production`  | App Bundle | Yes            | aab     | production  |
-
----
-
-## Features
-
-### Authentication
-
-- 🔐 Email/Phone/Username login
-- 📱 Sign-up with validation
-- 🔑 Password reset functionality
-- 🔐 Secure token storage with Expo Secure Store
-- 🔄 Automatic token refresh
-- 📱 Google Sign-In integration
-
-### Social Features
-
-- 📝 Create and share posts/tweets
-- ❤️ Like and bookmark posts
-- 💬 Reply and quote posts
-- 🔄 Repost/retweet functionality
-- 👥 Follow/unfollow users
-- 🔍 Search posts and users
-- 📊 Trending topics
-
-### Real-time Communication
-
-- 💬 Direct messaging (DMs)
-- 🔔 Real-time notifications via WebSocket
-- ✍️ Typing indicators
-- 📱 Push notifications
-- 🔔 Notification center
-
-### Exploration
-
-- 🏠 Home feed with algorithms
-- 🔥 Trending and explore sections
-- 👥 User recommendations
-- 🔍 Advanced search
-
-### User Profile
-
-- 👤 User profile with bio and stats
-- 📝 Tweet history
-- 👥 Followers/following lists
-- 🔗 Profile links
-- 🎨 Theme customization
-
-### Settings & Preferences
-
-- 🌓 Dark/light theme
-- 🌍 Language selection (i18n)
-- 🔔 Notification preferences
-- 🔐 Privacy settings
-- 📱 Account management
-
-### Media & Rich Content
-
-- 📸 Image uploads and gallery
-- 🎥 Video support
-- 🎵 Audio recording
-- 📍 Location sharing
-- 🖼️ Media caching for performance
-
----
-
 ## Project Structure Details
 
 ### Module Structure
@@ -661,73 +595,6 @@ Components are organized by responsibility:
 - **Axios** - HTTP client instance in `services/apiClient.ts`
 - **Token Refresh** - Automatic token refresh in `services/tokenRefreshService.ts`
 - **Socket.io** - Real-time WebSocket in `services/socketService.ts`
-
----
-
-## Environment Configuration
-
-### Development Environment
-
-The app runs in development mode with:
-
-- Redux DevTools support (if configured)
-- Console logging
-- Detailed error messages
-- Hot reload support
-
-### Environment Variables
-
-Create `.env` file:
-
-```env
-EXPO_PUBLIC_API_URL=https://api.example.com
-EXPO_PUBLIC_NODE_ENV=development
-EXPO_PUBLIC_SOCKET_URL=wss://socket.example.com
-```
-
----
-
-## Performance Optimization
-
-- 🚀 Image caching with Expo Image
-- 📦 Code splitting via Expo Router
-- ⚡ Memoization with React.memo
-- 🎯 FlatList optimization for large lists
-- 💾 Persistent caching for API responses
-- 🔄 Lazy loading for images and content
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-**"Cannot find module '@/...'"**
-
-- Clear node_modules: `rm -rf node_modules` (or `rmdir /s node_modules` on Windows)
-- Reinstall: `npm install`
-
-**"Expo server not responding"**
-
-- Kill all Expo processes: `pkill -f expo` or task manager
-- Clear cache: `expo start --clear`
-- Restart: `npm start`
-
-**"Module not found" errors**
-
-- Clear Metro bundler cache: `expo start --clear`
-- Clear node_modules and reinstall
-
-**Tests failing**
-
-- Clear Jest cache: `npm test -- --clearCache`
-- Check test setup: `jest.setup.ts`
-
-**Type errors in editor**
-
-- Run type checking: `npm run type-check`
-- Restart TypeScript server in editor
-- Rebuild: `npm install`
 
 ---
 
@@ -848,6 +715,6 @@ For questions, issues, or collaboration:
 
 ---
 
-**Last Updated**: December 23, 2025  
-**Version**: 1.2.0  
+**Last Updated**: December 26, 2025  
+**Version**: 1.3.0  
 **Project Start**: October 2025
