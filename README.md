@@ -1,6 +1,10 @@
 # Yapper 🗣️
 
-> A cross-platform social media app inspired by Twitter/X for sharing posts, engaging in real-time conversations, and discovering trending content. It features authentication, rich media tweets, threaded discussions, direct messaging, notifications, and AI-powered tweet summarization. Built with React Native/Expo and WebSockets for iOS and Android.
+In a world full of long-form articles and polished updates, **Yapper** is built for the "yappers." Whether it's a hot take on sports, a midnight epiphany, or just a stream-of-consciousness thread that nobody asked for—Yapper gives you the mic.
+
+> **"Don't just post. Yap."** > We believe every thought deserves a thread. Yapper is your space to talk your talk, find your crowd, and yap freely without the filter.
+
+---
 
 <div align="center">
 
@@ -71,7 +75,6 @@ Yapper is a cross-platform mobile application built with **Expo** and **React Na
 - 🚀 Automated CI/CD pipeline with EAS
 
 ---
-
 ## Get the App
 
 Experience Yapper on your device today.
