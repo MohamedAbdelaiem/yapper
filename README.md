@@ -1,29 +1,63 @@
-# Yapper Mobile 🐦
+# Yapper 🗣️
 
-A modern, feature-rich Twitter/X-inspired mobile application built with React Native and Expo. Yapper allows users to share thoughts, connect with others, and explore real-time conversations seamlessly across iOS, Android, and web platforms.
+> A cross-platform social media app inspired by Twitter/X for sharing posts, engaging in real-time conversations, and discovering trending content. It features authentication, rich media tweets, threaded discussions, direct messaging, notifications, and AI-powered tweet summarization. Built with React Native/Expo and WebSockets for iOS and Android.
 
-## 📋 Table of Contents
+<div align="center">
 
-- [Overview](#overview)
-- [Get the App](#get-the-app)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Project Structure Details](#project-structure-details)
-- [Getting Started](#getting-started)
-- [Available Scripts](#available-scripts)
-- [Testing](#testing)
-- [Code Quality](#code-quality)
-- [Contributing](#contributing)
-- [Authors](#authors)
-- [Resources & Documentation](#resources--documentation)
-- [Acknowledgments](#acknowledgments)
-- [License](#license)
+![Version](https://img.shields.io/badge/version-1.3.0-blue?style=for-the-badge)
+![Expo](https://img.shields.io/badge/Expo-54.0-black?style=for-the-badge&logo=expo)
+![React Native](https://img.shields.io/badge/React_Native-0.81-61DAFB?style=for-the-badge&logo=react)
+![License](https://img.shields.io/badge/license-Academic-green?style=for-the-badge)
+
+[Explore Features](#features) • [Install APK](#get-the-app) • [Tech Stack](#tech-stack) • [Project Structure](#project-structure)
+
+</div>
+
+---
+
+## 📸 Screenshots
+
+### Landing screen & Create account
+
+<div align="center">
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/1.jpeg" height="600" alt="landing-screen" />
+
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/2.jpeg" height="600" alt="create-account" />
+</div>
+
+### Home feed & Search
+
+<div align="center">
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/3.jpeg" height="600" alt="home-feed" />
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/4.jpeg" height="600" alt="search" />
+</div>
+
+### Notifications
+
+<div align="center">
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/5.jpeg" height="600" alt="notifications-all" />
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/6.jpeg" height="600" alt="notifications-mentions" />
+</div>
+
+### Chat
+
+<div align="center">
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/7.jpeg" height="600" alt="chat-all" />
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/8.jpeg" height="600" alt="chat-individual" />
+</div>
+
+### Profile
+
+<div align="center">
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/9.jpeg" height="600" alt="profile" />
+<img src="https://github.com/salehahmed99/yapper-mobile/blob/main/readme-assets/10.jpeg" height="600" alt="edit-profile" />
+</div>
 
 ---
 
 ## Overview
 
-Yapper Mobile is a cross-platform mobile application built with **Expo** and **React Native**, offering a Twitter-like social media experience. The app features:
+Yapper is a cross-platform mobile application built with **Expo** and **React Native**, offering a Twitter-like social media experience. The app features:
 
 - 🔐 Secure authentication with multi-step sign-up and Google Sign-In
 - 💬 Real-time messaging and chat with WebSocket support
@@ -40,14 +74,13 @@ Yapper Mobile is a cross-platform mobile application built with **Expo** and **R
 
 ## Get the App
 
-Experience Yapper Mobile on your Android device today! 🚀
+Experience Yapper on your device today.
 
-Head to the **[latest release](https://github.com/salehahmed99/yapper-mobile/releases/latest)** on GitHub to download the **APK** and install the app directly on your device.
+1.  **Download:** Head to the **[Latest Release](https://github.com/salehahmed99/yapper-mobile/releases/latest)**.
+2.  **Install:** Download the `.apk` file for Android.
+3.  **Scan:** (Optional) If you are using Expo Go, scan your development QR code here.
 
-> ⚠️ Note: Ensure that your device allows installation from unknown sources.
-> iOS support is available via TestFlight or the App Store in future releases.
-
-Install now and join the conversation in real-time with a full-featured social experience!
+> ⚠️ **Note:** Ensure your device allows "Installation from Unknown Sources" for the APK. iOS support is available via TestFlight or the App Store in future releases.
 
 ---
 
@@ -214,7 +247,7 @@ Install now and join the conversation in real-time with a full-featured social e
 
 ---
 
-## Project Structure Details
+## Project Structure
 
 ### Module Structure
 
@@ -253,6 +286,19 @@ Components are organized by responsibility:
 - **Axios** - HTTP client instance in `services/apiClient.ts`
 - **Token Refresh** - Automatic token refresh in `services/tokenRefreshService.ts`
 - **Socket.io** - Real-time WebSocket in `services/socketService.ts`
+
+### Data Flow
+
+```mermaid
+graph LR
+  A[User Action] --> B[Zustand Store]
+  A --> C[React Query / Axios]
+  C --> D[Backend API]
+  B --> E[UI Update]
+  D --> E
+  F[Socket.io] -->|Live Update| E
+
+```
 
 ---
 
@@ -502,7 +548,7 @@ This project was built with ❤️ by our amazing team:
 
 - 📅 **Project Started**: October 2025
 - 📝 **Total Commits**: 595+
-- 🏷️ **Latest Release**: v1.2.0 (December 2025)
+- 🏷️ **Latest Release**: v1.3.0 (December 2025)
 - 👥 **Contributors**: 6 team members
 - 🌿 **Active Branches**: 33
 
