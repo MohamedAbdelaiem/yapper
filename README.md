@@ -539,13 +539,64 @@ Quick contribution steps:
 
 This project was built with ❤️ by our amazing team:
 
-| Name                   | GitHub                                                 | Role           |
-| ---------------------- | ------------------------------------------------------ | -------------- |
-| **Saleh Ahmed**        | [@salehahmed99](https://github.com/salehahmed99)       | Lead Developer |
-| **Karim Yasser**       | [@KarimmYasser](https://github.com/KarimmYasser)       | Developer      |
-| **Abdallah Ayman**     | [@AbdallahAyman03](https://github.com/AbdallahAyman03) | Developer      |
-| **Ahmed Kamal**        | [@ahmedkamal14](https://github.com/ahmedkamal14)       | Developer      |
-| **Mohamed Abdelaziem** | [@mohamedAbdelaziem](https://github.com/MohamedAbdelaiem)       | Developer      |
+<table>
+  <tr>
+    <th align="center">Photo</th>
+    <th align="center">Name</th>
+    <th align="center">GitHub</th>
+    <th align="center">Role</th>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/salehahmed99.png" width="80"/>
+    </td>
+    <td align="center"><b>Saleh Ahmed</b></td>
+    <td align="center">
+      <a href="https://github.com/salehahmed99">@salehahmed99</a>
+    </td>
+    <td align="center">Lead Developer</td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/KarimmYasser.png" width="80"/>
+    </td>
+    <td align="center"><b>Karim Yasser</b></td>
+    <td align="center">
+      <a href="https://github.com/KarimmYasser">@KarimmYasser</a>
+    </td>
+    <td align="center">Developer</td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/AbdallahAyman03.png" width="80"/>
+    </td>
+    <td align="center"><b>Abdallah Ayman</b></td>
+    <td align="center">
+      <a href="https://github.com/AbdallahAyman03">@AbdallahAyman03</a>
+    </td>
+    <td align="center">Developer</td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/ahmedkamal14.png" width="80"/>
+    </td>
+    <td align="center"><b>Ahmed Kamal</b></td>
+    <td align="center">
+      <a href="https://github.com/ahmedkamal14">@ahmedkamal14</a>
+    </td>
+    <td align="center">Developer</td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img src="https://github.com/MohamedAbdelaiem.png" width="80"/>
+    </td>
+    <td align="center"><b>Mohamed Abdelaziem</b></td>
+    <td align="center">
+      <a href="https://github.com/MohamedAbdelaiem">@MohamedAbdelaziem</a>
+    </td>
+    <td align="center">Developer</td>
+  </tr>
+</table>
 
 ### Project Statistics
 
