@@ -545,7 +545,7 @@ This project was built with ❤️ by our amazing team:
 | **Karim Yasser**       | [@KarimmYasser](https://github.com/KarimmYasser)       | Developer      |
 | **Abdallah Ayman**     | [@AbdallahAyman03](https://github.com/AbdallahAyman03) | Developer      |
 | **Ahmed Kamal**        | [@ahmedkamal14](https://github.com/ahmedkamal14)       | Developer      |
-| **Mohamed Abdelaziem** | [@mohamed3b3az](https://github.com/MohamedAbdelaiem)       | Developer      |
+| **Mohamed Abdelaziem** | [@mohamedAbdelaziem](https://github.com/MohamedAbdelaiem)       | Developer      |
 
 ### Project Statistics
 
